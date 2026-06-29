@@ -555,16 +555,6 @@
             background-color: #ef4444;
             box-shadow: 0 0 8px #ef4444;
         }
-
-        /* Animación tick de cronómetro */
-        @keyframes tickPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .timer-tick-anim {
-            animation: tickPulse 0.15s ease-in-out;
-        }
     </style>
 </head>
 <body>
@@ -618,56 +608,6 @@
     </div>
 
     <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Sonidos limpios tipo "brick V1" (agradables, sin ruidos constantes)
-        function playTone(freq, duration, type = 'sine', ramp = true) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = type;
-            osc.frequency.value = freq;
-            
-            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-            if(ramp) {
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-            } else {
-                gain.gain.setValueAtTime(0.18, audioCtx.currentTime + duration - 0.05);
-                gain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-            }
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        // Tono suave estilo cascada de notas
-        function playSuccessSparkle() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-            
-            const freqs = [523.25, 659.25, 783.99, 1046.5];
-            freqs.forEach((f, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.frequency.value = f;
-                osc.type = 'sine';
-                gain.gain.setValueAtTime(0, now + i * 0.08);
-                gain.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.3);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + i * 0.08);
-                osc.stop(now + i * 0.08 + 0.3);
-            });
-        }
-
         const GAME_STATES = {
             IDLE: 0,
             PREPARING: 1,
@@ -683,8 +623,6 @@
         let elapsedTime = 0;
         let round = 1;
         let totalScore = 0;
-        let chargeInterval = null;
-        let chargePitch = 150;
         let roundScores = [];
         let hardMode = false;
         let stopCooldown = false;
@@ -727,42 +665,45 @@
             return 'grade-perfect';
         }
 
+        function getSummaryFlavorText(score) {
+            if (score >= 45) return "¡Impecable! Tienes una precisión asombrosa.";
+            if (score >= 35) return "Excelente nivel. Tienes un gran control del tiempo.";
+            if (score >= 25) return "Buen resultado, pero aún puedes afinar más tu ritmo.";
+            return "Sigue practicando, no es tan fácil clavar el tiempo de memoria.";
+        }
+
         function showSummaryScreen() {
             currentState = GAME_STATES.SUMMARY;
-            body.classList.remove('state-preparing', 'state-running');
-            
-            let finalAvg = (totalScore / 5).toFixed(2);
             
             document.getElementById('TopBarWithRounds').style.display = "none";
             targetBarWrapper.style.display = "none";
-            
+            restartNavBtn.style.display = "none";
+            restartSummaryContainer.style.display = "flex";
+
+            let avg = (totalScore / 5).toFixed(2);
+            let summaryFlavor = getSummaryFlavorText(totalScore);
+
+            let gridHTML = roundScores.map(score => {
+                let grade = getGradeClass(score);
+                return `<div class="round-box ${grade}"><span>${Math.round(score)}</span></div>`;
+            }).join('');
+
             mainDisplayArea.innerHTML = `
-                <div class="summary-title">${finalAvg}</div>
-                <div class="summary-subtitle">Puntuación media obtenida en las 5 rondas.</div>
+                <div class="summary-title" id="summaryTitle">${avg} <span style="font-size: 2.5rem; letter-spacing: 0;">/ 10</span></div>
+                <div class="summary-subtitle">${summaryFlavor}</div>
                 <div class="summary-box">
                     <div class="summary-header">
-                        <span>Resumen de notas</span>
-                        <span>${totalScore.toFixed(2)} / 50</span>
+                        <span>Notas por ronda</span>
+                        <span>Total: ${Math.round(totalScore)}/50</span>
                     </div>
-                    <div class="rounds-grid" id="roundsGrid"></div>
+                    <div class="rounds-grid">
+                        ${gridHTML}
+                    </div>
                 </div>
             `;
 
-            const roundsGrid = document.getElementById('roundsGrid');
-            roundScores.forEach((s, idx) => {
-                const grade = getGradeClass(s);
-                const heightPercentage = Math.min(100, Math.max(15, s * 10));
-                roundsGrid.innerHTML += `
-                    <div class="round-box ${grade}" style="height: ${heightPercentage}%;">
-                        <span>${idx + 1}</span>
-                    </div>
-                `;
-            });
-
-            instructions.textContent = "Partida finalizada. Haz clic en 'Volver' para reiniciar.";
-            cardBottomNav.style.display = "none";
-            restartSummaryContainer.style.display = "flex";
-            nextBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            instructions.textContent = "¡Partida finalizada!";
+            nextBtn.innerHTML = '<svg style="transform: rotate(180deg);" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
         }
 
         function resetGameDisplay() {
@@ -771,7 +712,6 @@
             scoreVal.textContent = "";
             scoreVal.className = 'score-val';
             instructions.className = 'instructions';
-            instructions.style.color = "";
             gameCard.className = 'game-card';
             
             document.getElementById('TopBarWithRounds').style.display = "flex";
@@ -879,12 +819,6 @@
                     currentState = GAME_STATES.PREPARING;
                     body.classList.add('state-preparing');
                     instructions.textContent = "Cargando... Suelta para empezar.";
-                    
-                    chargePitch = 150;
-                    chargeInterval = setInterval(() => {
-                        if(chargePitch < 300) chargePitch += 10;
-                        playTone(chargePitch, 0.1, 'sine', false);
-                    }, 100);
                 }
                 else if (currentState === GAME_STATES.RUNNING) {
                     stopTimer();
@@ -898,7 +832,6 @@
         window.addEventListener('keyup', (e) => {
             if (e.code === 'Space') {
                 if (currentState === GAME_STATES.PREPARING) {
-                    clearInterval(chargeInterval);
                     startTimer();
                 } else if (currentState === GAME_STATES.STOPPED) {
                     stopCooldown = false;
@@ -914,7 +847,6 @@
                 instructions.textContent = "Modo Difícil activo. ¡Cronómetro oculto! Pulsa espacio para parar.";
             } else {
                 instructions.textContent = "Pulsa espacio otra vez para parar.";
-                playTone(600, 0.15, 'triangle');
             }
 
             timerStart = performance.now();
@@ -924,11 +856,6 @@
                 
                 if (!hardMode) {
                     window.currTimerVal.textContent = elapsedTime.toFixed(2);
-                    if (Math.floor(elapsedTime) > Math.floor(elapsedTime - 0.01)) {
-                        playTone(400, 0.05, 'sine');
-                        window.currTimerVal.classList.add('timer-tick-anim');
-                        setTimeout(() => window.currTimerVal.classList.remove('timer-tick-anim'), 150);
-                    }
                 } else {
                     window.currTimerVal.textContent = "??";
                 }
@@ -950,28 +877,18 @@
             window.currTimerVal.textContent = elapsedTime.toFixed(2);
             window.currScoreLabel.textContent = `Nota Ronda ${round}`;
             
-            const scoreValEl = document.getElementById('scoreVal');
-            if (scoreValEl) {
-                scoreValEl.textContent = finalScore.toFixed(2);
-                scoreValEl.classList.add('animate-pop');
-                
-                const gradeClass = getGradeClass(finalScore);
-                if(gradeClass === 'grade-poor' || gradeClass === 'grade-ok') {
-                    scoreValEl.style.color = '#ef4444';
-                    instructions.style.color = '#ef4444';
-                } else {
-                    scoreValEl.style.color = '#10b981';
-                    instructions.style.color = '#10b981';
-                }
-            }
+            let grade = getGradeClass(finalScore);
+            window.currScoreVal.className = `score-val ${grade}`;
+            window.currScoreVal.textContent = Math.round(finalScore);
 
-            instructions.textContent = "¡Pulsa espacio para continuar!";
-            
-            // Sonido de éxito o fallo suave al parar
-            if (finalScore >= 7.0) {
-                playSuccessSparkle();
+            instructions.textContent = "Pulsa espacio o haz clic en la flecha para continuar.";
+
+            if (round < 5) {
+                nextBtn.classList.add('animate-shake');
+                setTimeout(() => nextBtn.classList.remove('animate-shake'), 600);
             } else {
-                playTone(300, 0.2, 'square');
+                nextBtn.classList.add('animate-shake');
+                setTimeout(() => nextBtn.classList.remove('animate-shake'), 600);
             }
         }
     </script>
