@@ -107,10 +107,19 @@
             width: 100%;
             height: 200px;
             border-radius: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: background-color 0.05s ease;
             background-color: #ddd;
+        }
+
+        /* Contador numérico de 5 segundos */
+        .memorize-timer {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #222;
+            margin-bottom: 25px;
+            font-variant-numeric: tabular-nums;
         }
 
         .sliders-group {
@@ -242,6 +251,15 @@
             letter-spacing: -1px;
         }
 
+        /* Para mostrar la nota final toda en una línea junto a la puntuación máxima */
+        .final-score-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
         .feedback-text {
             font-size: 1.2rem;
             font-weight: 500;
@@ -295,23 +313,6 @@
             0% { opacity: 1; top: -20px; transform: translateX(0) rotate(0deg); }
             100% { opacity: 0; top: 120px; transform: translateX(30px) rotate(45deg); }
         }
-
-        /* Timer bar en la pantalla de juego */
-        .timer-bar-container {
-            width: 100%;
-            height: 6px;
-            background-color: #e0e0e0;
-            border-radius: 3px;
-            margin-bottom: 25px;
-            overflow: hidden;
-            display: none;
-        }
-        .timer-bar {
-            height: 100%;
-            width: 100%;
-            background-color: #111;
-            transition: width linear;
-        }
     </style>
 </head>
 <body>
@@ -329,9 +330,7 @@
         <div id="play-screen" class="screen">
             <div class="round-indicator">Ronda <span id="current-round">1</span>/5</div>
             
-            <div class="timer-bar-container" id="timer-container">
-                <div class="timer-bar" id="timer-bar"></div>
-            </div>
+            <div class="memorize-timer" id="memorize-counter" style="display: none;">500</div>
 
             <div class="color-display" id="target-color-display"></div>
             
@@ -365,7 +364,7 @@
                     <span>Tu intento</span>
                 </div>
             </div>
-            <div class="score-display" id="round-score">+0.00</div>
+            <div class="score-display" id="round-score">0.00</div>
             <div class="feedback-text" id="round-feedback"></div>
             <button class="btn-action" id="next-btn" onclick="nextStep()">SIGUIENTE RONDA</button>
         </div>
@@ -373,8 +372,11 @@
         <div id="game-over-screen" class="screen">
             <h1>¡Partida Finalizada!</h1>
             <p style="color: #666; margin-bottom: 5px; font-size: 1rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Puntuación Total</p>
-            <div class="score-display" id="final-score" style="font-size: 4.5rem;">0.00 / 50.00</div>
-            <div class="feedback-text" id="final-feedback"></div>
+            <div class="final-score-container">
+                <div class="score-display" id="final-score" style="font-size: 4.5rem; margin-bottom: 0;">0.00</div>
+                <span style="font-size: 1.5rem; font-weight: 700; color: #888;">/ 50.00</span>
+            </div>
+            <div class="feedback-text" id="final-feedback" style="margin-top: 15px;"></div>
             
             <div id="confetti-wrapper" class="confetti-container"></div>
             
@@ -434,7 +436,6 @@
         // Animación progresiva de conteo de puntos
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
-            const isFinal = id === 'final-score';
             let startTimestamp = null;
             
             const step = (timestamp) => {
@@ -442,12 +443,12 @@
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const currentVal = progress * (end - start) + start;
                 
-                obj.innerText = isFinal ? `${currentVal.toFixed(2)} / 50.00` : `+${currentVal.toFixed(2)}`;
+                obj.innerText = currentVal.toFixed(2);
                 
                 if (progress < 1) {
                     window.requestAnimationFrame(step);
                 } else {
-                    obj.innerText = isFinal ? `${end.toFixed(2)} / 50.00` : `+${end.toFixed(2)}`;
+                    obj.innerText = end.toFixed(2);
                     if(end > 0) playSuccessSound();
                 }
             };
@@ -460,7 +461,6 @@
         let totalScore = 0;
         let targetH, targetS, targetV;
         const maxRounds = 5;
-        let timerInterval;
 
         // Convierte HSV a HEX para el renderizado css
         function hsvToHex(h, s, v) {
@@ -498,39 +498,43 @@
         }
 
         function generateRandomColor() {
+            // Colores más aleatorios y variados en todo el espectro (aleatoriedad completa en H, S y V)
             targetH = Math.floor(Math.random() * 361);
-            targetS = Math.floor(Math.random() * 41) + 60; // 60-100%
-            targetV = Math.floor(Math.random() * 41) + 40; // 40-80%
+            targetS = Math.floor(Math.random() * 101); // 0 a 100%
+            targetV = Math.floor(Math.random() * 101); // 0 a 100%
         }
 
         function startRound() {
-            clearInterval(timerInterval);
             document.getElementById('current-round').innerText = currentRound;
             generateRandomColor();
             
             const targetDisplay = document.getElementById('target-color-display');
             targetDisplay.style.backgroundColor = hsvToHex(targetH, targetS, targetV);
             
-            // Ocultar barras y botón mientras se muestra el color objetivo
+            // Ocultar barras y botón mientras se memoriza el color
             document.getElementById('sliders-group').style.display = 'none';
             document.getElementById('action-btn').style.display = 'none';
             
-            const timerContainer = document.getElementById('timer-container');
-            const timerBar = document.getElementById('timer-bar');
-            timerContainer.style.display = 'block';
-            timerBar.style.width = '100%';
-            timerBar.style.transitionDuration = '5s';
-
-            // Forzar reflow para reiniciar la animación CSS de la barra
-            setTimeout(() => {
-                timerBar.style.width = '0%';
-            }, 50);
+            // Mostrar contador numérico que va desde 500 hasta 0
+            const memorizeCounter = document.getElementById('memorize-counter');
+            memorizeCounter.style.display = 'block';
+            memorizeCounter.innerText = "500";
+            
+            let currentCountValue = 500;
+            const countInterval = setInterval(() => {
+                currentCountValue -= 10; 
+                if (currentCountValue <= 0) {
+                    currentCountValue = 0;
+                    clearInterval(countInterval);
+                }
+                memorizeCounter.innerText = currentCountValue;
+            }, 100);
 
             showScreen('play-screen');
 
-            // Después de 5 segundos, dejar la pantalla a cero y habilitar sliders
+            // Después de 5 segundos, ocultar el número, dejar el recuadro a cero y habilitar sliders
             setTimeout(() => {
-                timerContainer.style.display = 'none';
+                memorizeCounter.style.display = 'none';
                 
                 // Reiniciar sliders a valores predeterminados ciegos
                 document.getElementById('hue-slider').value = 180;
