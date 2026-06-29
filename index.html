@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Game - dialed.gg</title>
+    <title>Color Match - dialed.gg</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --panel-bg: #1e1e1e;
+            --bg-color: #ffffff;
+            --text-color: #111111;
+            --panel-bg: #f5f5f5;
             --accent: #4a90e2;
+            --border-radius: 20px;
         }
 
         body {
@@ -17,7 +18,7 @@
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -28,19 +29,28 @@
 
         #game-container {
             background-color: var(--panel-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            width: 380px;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+            width: 460px;
             text-align: center;
             position: relative;
+            box-sizing: border-box;
+            border: 1px solid #eaeaea;
         }
 
         h1 {
             margin-top: 0;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.5;
         }
 
         .screen {
@@ -53,63 +63,79 @@
         }
 
         /* Pantalla de inicio */
+        .start-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
         .btn-play {
-            background-color: #333;
-            color: white;
+            background-color: #111;
+            color: #fff;
             border: none;
-            padding: 15px 30px;
+            padding: 18px 40px;
             font-size: 1.2rem;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-top: 20px;
-            font-weight: bold;
+            margin-top: 25px;
+            font-weight: 700;
+            width: 100%;
         }
 
         .btn-play:hover {
-            background-color: #555;
-            transform: scale(1.05);
+            background-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .btn-play:active {
+            transform: scale(0.98);
         }
 
         /* Pantalla de juego */
         .round-indicator {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-bottom: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 25px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
         }
 
         .color-display {
             width: 100%;
-            height: 160px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-            transition: background-color 0.5s ease;
+            height: 200px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: background-color 0.3s ease;
+            background-color: #ddd;
         }
 
         .sliders-group {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 25px;
+            margin-bottom: 35px;
         }
 
         .slider-container {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 5px;
+            gap: 10px;
         }
 
         .slider-label {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             display: flex;
             justify-content: space-between;
             width: 100%;
+            color: #444;
         }
 
         input[type=range] {
@@ -124,26 +150,29 @@
 
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 8px;
+            height: 12px;
             cursor: pointer;
-            background: #333;
-            border-radius: 4px;
+            background: #e0e0e0;
+            border-radius: 6px;
             border: none;
         }
 
         input[type=range]::-webkit-slider-thumb {
-            height: 20px;
-            width: 20px;
+            height: 26px;
+            width: 26px;
             border-radius: 50%;
-            background: #fff;
+            background: #ffffff;
+            border: 2px solid #ccc;
             cursor: pointer;
             -webkit-appearance: none;
-            margin-top: -6px;
-            transition: transform 0.1s;
+            margin-top: -7px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s, border-color 0.2s;
         }
 
         input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+            transform: scale(1.1);
+            border-color: #999;
         }
 
         /* Sliders con colores dinámicos */
@@ -159,21 +188,20 @@
 
         .btn-action {
             width: 100%;
-            padding: 14px;
+            padding: 18px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
             color: white;
-            background-color: #28a745;
+            background-color: #111;
             transition: background 0.2s, transform 0.1s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .btn-action:hover {
-            background-color: #218838;
+            background-color: #333;
         }
 
         .btn-action:active {
@@ -183,55 +211,67 @@
         /* Pantalla de resultados de ronda / final */
         .result-boxes {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .color-box-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #666;
         }
 
         .color-box-preview {
-            width: 100px;
-            height: 100px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 130px;
+            height: 130px;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         .score-display {
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 4rem;
+            font-weight: 800;
             margin-bottom: 10px;
-            color: #ffd700;
+            color: #000;
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: -1px;
         }
 
         .feedback-text {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            color: #ddd;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 30px;
+            color: #444;
         }
 
         /* Animaciones */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
-            80% { transform: scale(1.1); }
+            80% { transform: scale(1.05); }
             100% { transform: scale(1); opacity: 1; }
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
         }
 
         .shake {
             animation: shake 0.3s ease-in-out;
         }
 
-        .confetti-, .confetti-container { 
+        .confetti-container { 
             position: absolute; 
             width: 100%; 
             height: 100%; 
@@ -239,21 +279,38 @@
             left: 0; 
             pointer-events: none; 
             overflow: hidden; 
-            border-radius: 12px;
+            border-radius: var(--border-radius);
         }
 
         .confetti-piece {
             position: absolute;
-            width: 10px;
-            height: 20px;
-            background: #ffd300;
+            width: 12px;
+            height: 24px;
+            background: #000;
             top: -20px;
             opacity: 0;
         }
 
         @keyframes drop {
             0% { opacity: 1; top: -20px; transform: translateX(0) rotate(0deg); }
-            100% { opacity: 0; top: 100px; transform: translateX(20px) rotate(45deg); }
+            100% { opacity: 0; top: 120px; transform: translateX(30px) rotate(45deg); }
+        }
+
+        /* Timer bar en la pantalla de juego */
+        .timer-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            display: none;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #111;
+            transition: width linear;
         }
     </style>
 </head>
@@ -261,17 +318,24 @@
 
     <div id="game-container">
         <div id="start-screen" class="screen active-screen">
-            <h1>Color Match</h1>
-            <p style="color: #aaa; margin-bottom: 30px;">Adivina el color usando Tono, Saturación y Brillo.</p>
-            <p style="color: #666; font-size: 0.9rem;">5 Rondas | Puntuación máxima: 50</p>
-            <button class="btn-play" onclick="startGame()">JUGAR</button>
+            <div class="start-wrapper">
+                <h1>Color Match</h1>
+                <p>Memoriza el color que aparecerá en pantalla y recrea sus valores de Tono, Saturación y Brillo.</p>
+                <p style="font-size: 0.95rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px;">5 Rondas • Puntuación máxima: 10.00</p>
+                <button class="btn-play" onclick="startGame()">JUGAR</button>
+            </div>
         </div>
 
         <div id="play-screen" class="screen">
             <div class="round-indicator">Ronda <span id="current-round">1</span>/5</div>
+            
+            <div class="timer-bar-container" id="timer-container">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+
             <div class="color-display" id="target-color-display"></div>
             
-            <div class="sliders-group">
+            <div class="sliders-group" id="sliders-group" style="display: none;">
                 <div class="slider-container">
                     <div class="slider-label"><span>Tono (Hue)</span><span id="hue-val">0°</span></div>
                     <input type="range" id="hue-slider" min="0" max="360" value="0" oninput="updatePlayerColor()">
@@ -281,30 +345,36 @@
                     <input type="range" id="sat-slider" min="0" max="100" value="100" oninput="updatePlayerColor()">
                 </div>
                 <div class="slider-container">
-                    <div class="slider-label"><span>Brillo (Lightness)</span><span id="val-slider" style="display:none">50%</span><span>Brillo (Value)</span><span id="val-val">50%</span></div>
+                    <div class="slider-label"><span>Brillo (Value)</span><span id="val-val">50%</span></div>
                     <input type="range" id="val-slider" min="0" max="100" value="50" oninput="updatePlayerColor()">
                 </div>
             </div>
 
-            <button class="btn-action" id=" action-btn" onclick="confirmGuess()">CONFIRMAR</button>
+            <button class="btn-action" id="action-btn" onclick="confirmGuess()" style="display: none;">CONFIRMAR</button>
         </div>
 
         <div id="round-result-screen" class="screen">
             <h1>Ronda Finalizada</h1>
             <div class="result-boxes">
-                <div class="color-box-preview" id="preview-target" title="Objetivo"></div>
-                <div class="color-box-preview" id="preview-player" title="Tu intento"></div>
+                <div class="color-box-wrapper">
+                    <div class="color-box-preview" id="preview-target"></div>
+                    <span>Objetivo</span>
+                </div>
+                <div class="color-box-wrapper">
+                    <div class="color-box-preview" id="preview-player"></div>
+                    <span>Tu intento</span>
+                </div>
             </div>
-            <div class="score-display" id="round-score">+0</div>
-            <div class="feedback-text" id="round-feedback">¡Estuviste muy cerca!</div>
+            <div class="score-display" id="round-score">+0.00</div>
+            <div class="feedback-text" id="round-feedback"></div>
             <button class="btn-action" id="next-btn" onclick="nextStep()">SIGUIENTE RONDA</button>
         </div>
 
         <div id="game-over-screen" class="screen">
             <h1>¡Partida Finalizada!</h1>
-            <p style="color: #aaa; margin-bottom: 5px;">Puntuación Total</p>
-            <div class="score-display" id="final-score" style="font-size: 3.5rem;">0 / 250</div>
-            <div class="feedback-text" id="final-feedback">¡Tienes un ojo increíble para los colores!</div>
+            <p style="color: #666; margin-bottom: 5px; font-size: 1rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Puntuación Total</p>
+            <div class="score-display" id="final-score" style="font-size: 4.5rem;">0.00 / 50.00</div>
+            <div class="feedback-text" id="final-feedback"></div>
             
             <div id="confetti-wrapper" class="confetti-container"></div>
             
@@ -358,6 +428,7 @@
         let totalScore = 0;
         let targetH, targetS, targetV;
         const maxRounds = 5;
+        let timerInterval;
 
         // Convierte HSV a HEX para el renderizado css
         function hsvToHex(h, s, v) {
@@ -396,25 +467,51 @@
 
         function generateRandomColor() {
             targetH = Math.floor(Math.random() * 361);
-            targetS = Math.floor(Math.random() * 41) + 60; // Para que sean colores vivos: 60-100%
-            targetV = Math.floor(Math.random() * 41) + 40; // Brillo medio-alto: 40-80%
+            targetS = Math.floor(Math.random() * 41) + 60; // 60-100%
+            targetV = Math.floor(Math.random() * 41) + 40; // 40-80%
         }
 
         function startRound() {
+            clearInterval(timerInterval);
             document.getElementById('current-round').innerText = currentRound;
             generateRandomColor();
             
-            // Animación de aparición (efecto parpadeo original)
             const targetDisplay = document.getElementById('target-color-display');
             targetDisplay.style.backgroundColor = hsvToHex(targetH, targetS, targetV);
             
-            // Reiniciar sliders a valores intermedios/vacíos
-            document.getElementById('hue-slider').value = 180;
-            document.getElementById('sat-slider').value = 50;
-            document.getElementById('val-slider').value = 50;
-            updatePlayerColor();
+            // Ocultar elementos interactivos durante los 5 segundos que se muestra el color
+            document.getElementById('sliders-group').style.display = 'none';
+            document.getElementById('action-btn').style.display = 'none';
             
+            const timerContainer = document.getElementById('timer-container');
+            const timerBar = document.getElementById('timer-bar');
+            timerContainer.style.display = 'block';
+            timerBar.style.width = '100%';
+            timerBar.style.transitionDuration = '5s';
+
+            // Forzar reflow para reiniciar la animación CSS de la barra
+            setTimeout(() => {
+                timerBar.style.width = '0%';
+            }, 50);
+
             showScreen('play-screen');
+
+            // Después de 5 segundos, habilitar la adivinanza del usuario
+            setTimeout(() => {
+                timerContainer.style.display = 'none';
+                
+                // Poner el display en un color gris/neutro para que no lo vea mientras ajusta
+                targetDisplay.style.backgroundColor = '#e0e0e0';
+
+                // Reiniciar sliders a valores predeterminados ciegos
+                document.getElementById('hue-slider').value = 180;
+                document.getElementById('sat-slider').value = 50;
+                document.getElementById('val-slider').value = 50;
+                updatePlayerColor();
+
+                document.getElementById('sliders-group').style.display = 'flex';
+                document.getElementById('action-btn').style.display = 'block';
+            }, 5000);
         }
 
         function updatePlayerColor() {
@@ -441,42 +538,43 @@
             let player = getPlayerHsv();
             
             // Cálculo de distancia (Máxima diferencia posible = 360 + 100 + 100 = 560)
-            // Queremos que la puntuación máxima sea 50 por ronda (escala a 50 puntos máx)
             let diffH = Math.abs(targetH - player.h);
-            // El círculo cromático envuelve 360, ej: 359 está cerca de 1
             if (diffH > 180) diffH = 360 - diffH; 
             
             let diffS = Math.abs(targetS - player.s);
             let diffV = Math.abs(targetV - player.v);
             
             let totalDiff = (diffH / 360) * 50 + (diffS / 100) * 25 + (diffV / 100) * 25; 
-            // Normalizamos puntuación para que una diferencia 0 dé 50 puntos y una distancia alta dé 0
-            let roundScore = Math.round(Math.max(0, 50 - (totalDiff * 0.8)));
+            
+            // Queremos una puntuación sobre 10.00, con 2 decimales.
+            // 0% de diferencia = 10.00 puntos, Máxima diferencia = 0.00 puntos
+            let roundScore = Math.max(0, 10 - (totalDiff * (10 / 56))); 
+            roundScore = parseFloat(roundScore.toFixed(2));
 
-            totalScore += roundScore;
+            totalScore = parseFloat((totalScore + roundScore).toFixed(2));
 
-            // Renderizar resultados en pantalla intermedia
+            // Renderizar resultados
             document.getElementById('preview-target').style.backgroundColor = hsvToHex(targetH, targetS, targetV);
             document.getElementById('preview-player').style.backgroundColor = hsvToHex(player.h, player.s, player.v);
             
-            document.getElementById('round-score').innerText = `+${roundScore}`;
+            document.getElementById('round-score').innerText = `+${roundScore.toFixed(2)}`;
             
             let feedback = "";
-            if(roundScore === 50) {
+            if(roundScore >= 9.50) {
                 feedback = "¡Perfecto! Has clavado el color.";
                 playSuccessSound();
-            } else if(roundScore >= 40) {
+            } else if(roundScore >= 8.00) {
                 feedback = "¡Brillante! Estuviste muy cerca.";
                 playSuccessSound();
-            } else if(roundScore >= 25) {
+            } else if(roundScore >= 5.00) {
                 feedback = "¡Nada mal! Se puede mejorar.";
                 playSound(300, 0.15, 'sine');
             } else {
                 feedback = "¡Demasiado lejos de la realidad!";
                 playSound(150, 0.2, 'sawtooth');
-                // Agitar contenedor en interfaz para avisar de fallo
-                document.getElementById('game-container').classList.add('shake');
-                setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 300);
+                const container = document.getElementById('game-container');
+                container.classList.add('shake');
+                setTimeout(() => container.classList.remove('shake'), 300);
             }
             
             document.getElementById('round-feedback').innerText = feedback;
@@ -496,19 +594,17 @@
                 currentRound++;
                 startRound();
             } else {
-                // Pantalla final
-                document.getElementById('final-score').innerText = `${totalScore} / 250`;
+                document.getElementById('final-score').innerText = `${totalScore.toFixed(2)} / 50.00`;
                 
                 let finalFeedback = "";
-                if(totalScore === 250) finalFeedback = "¡Dios del Color! Nadie te gana.";
-                else if(totalScore >= 200) finalFeedback = "¡Excelente visión cromática!";
-                else if(totalScore >= 125) finalFeedback = "Tienes buena memoria visual.";
+                if(totalScore === 50.00) finalFeedback = "¡Dios del Color! Nadie te gana.";
+                else if(totalScore >= 45.00) finalFeedback = "¡Excelente visión cromática!";
+                else if(totalScore >= 35.00) finalFeedback = "Tienes buena memoria visual.";
                 else finalFeedback = "Sigue practicando tu percepción de colores.";
                 
                 document.getElementById('final-feedback').innerText = finalFeedback;
                 
-                // Efecto confeti si se completa el juego excelente
-                if(totalScore >= 200) launchConfetti();
+                if(totalScore >= 40.00) launchConfetti();
 
                 showScreen('game-over-screen');
             }
@@ -526,7 +622,7 @@
                 let piece = document.createElement('div');
                 piece.className = 'confetti-piece';
                 piece.style.left = Math.random() * 100 + '%';
-                piece.style.background = ['#ffd300', '#ff5252', '#ff4081', '#4caf50', '#2196f3', '#9c27b0'][Math.floor(Math.random() * 6)];
+                piece.style.background = ['#111', '#333', '#555', '#777', '#999', '#bbb'][Math.floor(Math.random() * 6)];
                 piece.style.animation = `drop ${Math.random() * 1.5 + 1}s linear forwards`;
                 piece.style.animationDelay = Math.random() * 0.5 + 's';
                 wrapper.appendChild(piece);
