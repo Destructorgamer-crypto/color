@@ -63,16 +63,6 @@
             position: relative;
         }
 
-        #logo-watermark {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 13px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.85);
-            letter-spacing: -0.2px;
-        }
-
         /* Paneles de control */
         .sliders-wrapper {
             display: flex;
@@ -84,10 +74,10 @@
         }
 
         .bar-preview {
-            width: 130px;
+            width: 240px;
             height: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             position: relative;
         }
 
@@ -101,7 +91,7 @@
 
         .control-group {
             position: relative;
-            height: 60px;
+            height: 68px;
             background: #f8fafc;
             border-radius: 10px;
             border: 1px solid #e2e8f0;
@@ -138,17 +128,17 @@
             background: #ffffff;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            transition: transform 0.1s, background-color 0.3s;
+            transition: transform 0.1s;
         }
 
         input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.15);
         }
 
-        /* Indicadores visuales en vivo dentro de los controles */
-        #hue::-webkit-slider-thumb { background: linear-gradient(90deg, red, yellow, green, cyan, blue, magenta, red); }
-        #saturation::-webkit-slider-thumb { background: #475569; }
-        #lightness::-webkit-slider-thumb { background: #475569; }
+        /* Fondo del slider de Tono reflejando el color en vivo */
+        #hue {
+            background: linear-gradient(90deg, red, yellow, green, cyan, blue, magenta, red);
+        }
 
         /* Botón de acción */
         button {
@@ -194,10 +184,17 @@
         }
 
         #feedback {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 32px;
+            font-weight: 800;
             margin-bottom: 25px;
             color: #059669;
+            animation: countUp 0.6s ease-out forwards;
+        }
+
+        @keyframes countUp {
+            0% { opacity: 0; transform: scale(0.8); }
+            80% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         /* Tableros de resultado detallado (Dialed Style Split) */
@@ -277,7 +274,7 @@
 </head>
 <body>
 
-    <audio id="sound-tick" src="https://assets.mixkit.co/active_storage/sfx/2869/2869.wav" preload="auto"></audio>
+    <audio id="sound-tick" src="https://assets.mixkit.co/active_storage/sfx/2592/2592.wav" preload="auto"></audio>
     <audio id="sound-confirm" src="https://assets.mixkit.co/active_storage/sfx/2591/2591.wav" preload="auto"></audio>
 
     <div id="game-container">
@@ -292,10 +289,8 @@
         <div id="memorize-screen" class="screen" style="display: none;">
             <div class="round-counter">Ronda <span id="m-round">1</span> / 5</div>
             <div id="timer">5</div>
-            <div id="color-display">
-                <div id="logo-watermark">Dialed.gg</div>
-            </div>
-            <p style="color: #94a3b8; font-size: 13px; font-weight: 500;">Memorizando color...</p>
+            <div id="color-display"></div>
+            <p style="color: #94a3b8; font-size: 13px; font-weight: 500; margin-top: 5px;">Memorizando color...</p>
         </div>
 
         <div id="guess-screen" class="screen" style="display: none;">
@@ -326,7 +321,7 @@
 
         <div id="round-result-screen" class="screen" style="display: none;">
             <div class="round-counter">Resultado Ronda <span id="r-round">1</span></div>
-            <div id="feedback">¡Precisión: 8.5/10!</div>
+            <div id="feedback">¡Precisión: <span id="score-counter">0.00</span>/10!</div>
             
             <div class="split-preview-wrapper">
                 <div>
@@ -447,8 +442,8 @@
             const rgbVal = `hsl(${currentH}, ${currentS}%, ${currentL}%)`;
             document.getElementById('user-color-preview').style.backgroundColor = rgbVal;
             
-            // Refleja en tiempo real las barras como feedback de estado del slider
-            document.getElementById('hue').style.setProperty('--thumb-highlight', rgbVal);
+            // Actualiza el fondo del slider de tono, saturación y luz para ver qué tono se está eligiendo en el mismo control de color
+            document.getElementById('hue').style.background = `linear-gradient(90deg, red, yellow, green, cyan, blue, magenta, red)`;
             document.getElementById('saturation').style.background = `linear-gradient(90deg, hsl(${currentH}, 0%, ${currentL}%), hsl(${currentH}, 100%, ${currentL}%))`;
             document.getElementById('lightness').style.background = `linear-gradient(90deg, #000000, hsl(${currentH}, ${currentS}%, 50%), #ffffff)`;
         }
@@ -476,7 +471,20 @@
             roundResultScreen.style.display = 'flex';
 
             document.getElementById('r-round').innerText = round;
-            document.getElementById('feedback').innerText = `Precisión: ${score} / 10`;
+            
+            // Animación de conteo numérico hasta el puntaje correspondiente
+            const scoreCounter = document.getElementById('score-counter');
+            let currentDisplayScore = 0;
+            const incrementStep = score / 30;
+            
+            const countInterval = setInterval(() => {
+                currentDisplayScore += incrementStep;
+                if (currentDisplayScore >= score) {
+                    currentDisplayScore = score;
+                    clearInterval(countInterval);
+                }
+                scoreCounter.innerText = currentDisplayScore.toFixed(2);
+            }, 20);
 
             // Establece las variables CSS en el DOM para la visualización del split diagonal de estilos
             const origColorStr = `hsl(${targetH}, ${targetS}%, ${targetL}%)`;
