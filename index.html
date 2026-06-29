@@ -109,7 +109,7 @@
             border-radius: 16px;
             margin-bottom: 30px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: background-color 0.1s ease;
+            transition: background-color 0.05s ease;
             background-color: #ddd;
         }
 
@@ -321,7 +321,7 @@
             <div class="start-wrapper">
                 <h1>Color Match</h1>
                 <p>Memoriza el color que aparecerá en pantalla y recrea sus valores de Tono, Saturación y Brillo.</p>
-                <p style="font-size: 0.95rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px;">5 Rondas • Puntuación máxima: 10.00</p>
+                <p style="font-size: 0.95rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px;">5 Rondas</p>
                 <button class="btn-play" onclick="startGame()">JUGAR</button>
             </div>
         </div>
@@ -431,7 +431,7 @@
             setTimeout(() => playSound(880, 0.1, 'sine'), 80);
         }
 
-        // Animación progresiva de conteo de puntos (como en Dialed)
+        // Animación progresiva de conteo de puntos
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
             const isFinal = id === 'final-score';
@@ -448,7 +448,7 @@
                     window.requestAnimationFrame(step);
                 } else {
                     obj.innerText = isFinal ? `${end.toFixed(2)} / 50.00` : `+${end.toFixed(2)}`;
-                    if(end > 0) playSuccessSound(); // Sonidito satisfactorio al terminar de subir
+                    if(end > 0) playSuccessSound();
                 }
             };
             window.requestAnimationFrame(step);
@@ -509,9 +509,9 @@
             generateRandomColor();
             
             const targetDisplay = document.getElementById('target-color-display');
-            targetDisplay.style.backgroundColor = hsvHex(targetH, targetS, targetV);
+            targetDisplay.style.backgroundColor = hsvToHex(targetH, targetS, targetV);
             
-            // Ocultar elementos interactivos durante los 5 segundos que se muestra el color
+            // Ocultar barras y botón mientras se muestra el color objetivo
             document.getElementById('sliders-group').style.display = 'none';
             document.getElementById('action-btn').style.display = 'none';
             
@@ -528,7 +528,7 @@
 
             showScreen('play-screen');
 
-            // Después de 5 segundos, habilitar adivinanza
+            // Después de 5 segundos, dejar la pantalla a cero y habilitar sliders
             setTimeout(() => {
                 timerContainer.style.display = 'none';
                 
@@ -537,7 +537,7 @@
                 document.getElementById('sat-slider').value = 50;
                 document.getElementById('val-slider').value = 50;
                 
-                // Aplicar el color en tiempo real desde el segundo 0 del ajuste del usuario
+                // Actualizar el color en tiempo real desde el segundo 0
                 updatePlayerColor();
 
                 document.getElementById('sliders-group').style.display = 'flex';
@@ -556,9 +556,9 @@
 
             // En tiempo real, actualizar el display para que el usuario vaya viendo lo que hace
             const targetDisplay = document.getElementById('target-color-display');
-            targetDisplay.style.backgroundColor = hsvHex(h, s, v);
+            targetDisplay.style.backgroundColor = hsvToHex(h, s, v);
             
-            // Sonidito de mover las barras (muy sutil)
+            // Sonidito de mover las barras
             playSliderSound();
         }
 
@@ -584,15 +584,15 @@
             
             let totalDiff = (diffH / 360) * 50 + (diffS / 100) * 25 + (diffV / 100) * 25; 
             
-            // Puntuación sobre 10.00, con 2 decimales.
+            // Puntuación sobre 10.00 por ronda, con 2 decimales.
             let roundScore = Math.max(0, 10 - (totalDiff * (10 / 56))); 
             roundScore = parseFloat(roundScore.toFixed(2));
 
             totalScore = parseFloat((totalScore + roundScore).toFixed(2));
 
             // Renderizar colores objetivo e intento
-            document.getElementById('preview-target').style.backgroundColor = hsvHex(targetH, targetS, targetV);
-            document.getElementById('preview-player').style.backgroundColor = hsvHex(player.h, player.s, player.v);
+            document.getElementById('preview-target').style.backgroundColor = hsvToHex(targetH, targetS, targetV);
+            document.getElementById('preview-player').style.backgroundColor = hsvToHex(player.h, player.s, player.v);
             
             // Animación del número subiendo progresivamente
             animateValue('round-score', 0, roundScore, 800);
@@ -629,7 +629,7 @@
                 currentRound++;
                 startRound();
             } else {
-                // Animación de subida en el resultado global final
+                // Animación de subida en el resultado global final sobre 50.00
                 animateValue('final-score', 0, totalScore, 1200);
                 
                 let finalFeedback = "";
