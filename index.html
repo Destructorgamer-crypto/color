@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Colores con Sonidos</title>
+    <title>Brick V1 - Estilo Dialed.gg (HSL)</title>
     <style>
         body {
             margin: 0;
@@ -12,75 +12,164 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            background-color: #222;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        #game-container {
-            text-align: center;
+        h1 {
+            margin-bottom: 10px;
         }
 
-        #color-box {
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
+        .game-board {
+            display: flex;
+            gap: 40px;
+            background: #2d2d2d;
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-            transition: background-color 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        .btn {
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
+        .box-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .color-box {
+            width: 180px;
+            height: 180px;
             border-radius: 10px;
-            background-color: #4CAF50;
+            border: 2px solid #444;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+            width: 250px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Degradados visuales en las barras para identificar el efecto */
+        #hue-slider {
+            accent-color: #ff3366;
+            background: linear-gradient(to right, red, yellow, green, cyan, blue, magenta, red);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+        }
+        #saturation-slider {
+            accent-color: #85bb65;
+            background: linear-gradient(to right, #808080, #00ff00);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+        }
+        #lightness-slider {
+            accent-color: #3498db;
+            background: linear-gradient(to right, #000000, #808080, #ffffff);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+        }
+
+        .btn-container {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #4a6fa5;
             color: white;
-            margin: 10px;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background 0.2s, transform 0.1s;
         }
 
-        .btn:hover {
-            background-color: #45a049;
+        button:hover {
+            background-color: #3f5d8a;
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        button:active {
+            transform: scale(0.96);
         }
 
-        #score {
-            font-size: 24px;
-            margin-top: 15px;
+        .score-board {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <h1>¡Adivina el Color!</h1>
-        <div id="color-box" style="background-color: #3498db;"></div>
-        <p id="color-name">Cargando...</p>
-        
-        <div id="buttons-container">
-            </div>
+    <h1>Brick V1: Dialed HSL</h1>
+    
+    <div class="game-board">
+        <div class="box-container">
+            <h3>Objetivo</h3>
+            <div class="color-box" id="target-box"></div>
+            <span>Memoriza este color</span>
+        </div>
 
-        <div id="score">Puntuación: 0</div>
+        <div class="box-container">
+            <h3>Tu Color</h3>
+            <div class="color-box" id="user-box"></div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="hue-slider">Tono (Hue): <span id="hue-val">0</span>°</label>
+                    <input type="range" id="hue-slider" min="0" max="360" value="0">
+                </div>
+                <div class="control-group">
+                    <label for="saturation-slider">Saturación: <span id="saturation-val">0</span>%</label>
+                    <input type="range" id="saturation-slider" min="0" max="100" value="0">
+                </div>
+                <div class="control-group">
+                    <label for="lightness-slider">Intensidad (Lightness): <span id="lightness-val">0</span>%</label>
+                    <input type="range" id="lightness-slider" min="0" max="100" value="0">
+                </div>
+            </div>
+        </div>
     </div>
 
+    <div class="btn-container">
+        <button id="check-btn">Comprobar</button>
+        <button id="reset-btn">Siguiente</button>
+    </div>
+
+    <div class="score-board">Puntos: <span id="score">0</span></div>
+
     <script>
-        // Generación de sonidos usando la Web Audio API (sin dependencias externas)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(freq, type, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            osc.type = type; // 'sine', 'square', 'triangle', 'sawtooth'
+            osc.type = type; 
             osc.frequency.value = freq;
             
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -93,75 +182,101 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // Sonidos específicos del otro juego
         const soundEffects = {
             correct: () => playSound(600, 'triangle', 0.3),
             wrong: () => playSound(200, 'square', 0.4),
             start: () => playSound(440, 'sine', 0.5)
         };
 
-        // Lógica del juego
-        const colors = [
-            { name: "Rojo", hex: "#e74c3c" },
-            { name: "Azul", hex: "#3498db" },
-            { name: "Verde", hex: "#2ecc71" },
-            { name: "Amarillo", hex: "#f1c40f" },
-            { name: "Púrpura", hex: "#9b59b6" },
-            { name: "Naranja", hex: "#e67e22" }
-        ];
-
+        // Lógica del juego HSL
+        let targetH = 0, targetS = 0, targetL = 0;
         let score = 0;
-        let targetColor = {};
 
-        const colorBox = document.getElementById('color-box');
-        const colorNameText = document.getElementById('color-name');
-        const buttonsContainer = document.getElementById('buttons-container');
+        const targetBox = document.getElementById('target-box');
+        const userBox = document.getElementById('user-box');
+        
+        const hueSlider = document.getElementById('hue-slider');
+        const saturationSlider = document.getElementById('saturation-slider');
+        const lightnessSlider = document.getElementById('lightness-slider');
+
+        const hueVal = document.getElementById('hue-val');
+        const saturationVal = document.getElementById('saturation-val');
+        const lightnessVal = document.getElementById('lightness-val');
+        
         const scoreDisplay = document.getElementById('score');
 
-        function nextRound() {
-            // Seleccionar color objetivo (nombre a mostrar)
-            const targetNameIndex = Math.floor(Math.random() * colors.length);
-            targetColor = colors[targetNameIndex];
-            colorNameText.innerText = `¿Cuál es el color "${targetColor.name}"?`;
-
-            // Mezclar opciones visuales (cajas de colores)
-            // Nos aseguramos de incluir el color correcto y rellenar con otros aleatorios
-            let options = [targetColor];
-            while(options.length < 3) {
-                let randomColor = colors[Math.floor(Math.random() * colors.length)];
-                if(!options.includes(randomColor)) {
-                    options.push(randomColor);
-                }
-            }
-            // Barajar las opciones
-            options.sort(() => Math.random() - 0.5);
-
-            // Renderizar botones
-            buttonsContainer.innerHTML = '';
-            options.forEach(color => {
-                const btn = document.createElement('button');
-                btn.classList.add('btn');
-                btn.style.backgroundColor = color.hex;
-                btn.onclick = () => checkAnswer(color.name);
-                buttonsContainer.appendChild(btn);
-            });
+        function generateTargetColor() {
+            // Tono de 0 a 360, Saturación e Intensidad de 20% a 80% para evitar grises o blancos absolutos imposibles de adivinar
+            targetH = Math.floor(Math.random() * 361);
+            targetS = Math.floor(Math.random() * 61) + 20; 
+            targetL = Math.floor(Math.random() * 61) + 20;
+            
+            targetBox.style.backgroundColor = `hsl(${targetH}, ${targetS}%, ${targetL}%)`;
         }
 
-        function checkAnswer(selectedName) {
-            if (selectedName === targetColor.name) {
-                score += 10;
+        function updateUsersColor() {
+            const h = hueSlider.value;
+            const s = saturationSlider.value;
+            const l = lightnessSlider.value;
+
+            hueVal.innerText = h;
+            saturationVal.innerText = s;
+            lightnessVal.innerText = l;
+
+            userBox.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        hueSlider.addEventListener('input', updateUsersColor);
+        saturationSlider.addEventListener('input', updateUsersColor);
+        lightnessSlider.addEventListener('input', updateUsersColor);
+
+        document.getElementById('check-btn').addEventListener('click', () => {
+            const currentH = parseInt(hueSlider.value);
+            const currentS = parseInt(saturationSlider.value);
+            const currentL = parseInt(lightnessSlider.value);
+
+            // Tolerancia estricta para el modo entrenamiento (Tono +/- 8, Saturación +/- 10, Intensidad +/- 10)
+            const toleranceH = 8;
+            const toleranceS = 10;
+            const toleranceL = 10;
+
+            // Manejo del caso circular del Tono (0 y 360 grados son el mismo punto)
+            let diffH = Math.abs(currentH - targetH);
+            if (diffH > 180) diffH = 360 - diffH;
+
+            if (
+                diffH <= toleranceH &&
+                Math.abs(currentS - targetS) <= toleranceS &&
+                Math.abs(currentL - targetL) <= toleranceL
+            ) {
+                score += 20;
                 soundEffects.correct();
+                alert("¡Tono, Saturación e Intensidad clavados!");
+                resetGame();
             } else {
-                score = Math.max(0, score - 5);
+                score = Math.max(0, score - 10);
                 soundEffects.wrong();
+                alert("¡Te has desviado! Sigue ajustando o pasa al siguiente.");
             }
-            scoreDisplay.innerText = `Puntuación: ${score}`;
-            nextRound();
+            scoreDisplay.innerText = score;
+        });
+
+        function resetGame() {
+            generateTargetColor();
+            // Resetear barras a valores neutrales de inicio
+            hueSlider.value = 0;
+            saturationSlider.value = 0;
+            lightnessSlider.value = 0;
+            updateUsersColor();
         }
 
-        // Iniciar el juego
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            resetGame();
+        });
+
+        // Inicialización
         soundEffects.start();
-        nextRound();
+        resetGame();
     </script>
 </body>
 </html>
