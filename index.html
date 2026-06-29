@@ -3,894 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dialed Color Memory.embed</title>
+    <title>Juego de Colores con Sonidos</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-
-        :root {
-            --bg-color: #faf9f6; 
-            --card-bg: #ffffff; 
-            --text-main: #111827; 
-            --text-muted: #9ca3af; 
-            --prep-color-start: #3b82f6; 
-            --prep-color-end: #60a5fa;
-            --run-color: #1f2937;
-            --success-color: #10b981; 
-            --fail-color: #ef4444;
-            --ok-color: #f59e0b;
-        }
-
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            transition: background-color 0.6s ease;
-        }
-
-        body.state-hard {
-            background-color: #111827;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --run-color: #ffffff;
-        }
-
-        .game-card {
-            background-color: var(--card-bg);
-            width: 100%;
-            max-width: 680px;
-            height: 660px;
-            border-radius: 32px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 2.5rem 3rem;
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
-            position: relative;
-            border: 1px solid #e5e7eb;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease, border-color 0.4s ease, background-color 0.6s ease;
-            animation: cardFloat 4s ease-in-out infinite alternate;
-        }
-
-        body.state-hard .game-card {
-            border-color: #374151;
-            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes cardFloat {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-6px); }
-        }
-
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 30px;
-        }
-
-        .round-display {
-            font-size: 1.25rem;
-            font-weight: 900;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
-
-        .target-bar {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            background: #f3f4f6;
-            padding: 10px 20px;
-            border-radius: 18px;
-            border: 1px solid #e5e7eb;
-            margin: 0 auto;
-            transition: all 0.3s ease;
-        }
-
-        body.state-hard .target-bar {
-            background: #374151;
-            border-color: #4b5563;
-        }
-
-        .target-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .target-value {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--text-main);
-            font-variant-numeric: tabular-nums;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .hard-badge {
-            background-color: #ef4444;
+            height: 100vh;
+            background-color: #222;
             color: white;
-            font-size: 0.65rem;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            vertical-align: middle;
-        }
-
-        .main-display {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            flex-grow: 1;
-            gap: 0.5rem;
-            position: relative;
-        }
-
-        .timer-val {
-            font-size: 10rem;
-            font-weight: 900;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -4px;
-            color: var(--text-main);
-            transition: all 0.3s ease;
-            line-height: 0.9;
-        }
-
-        body.state-hard.state-running .timer-val {
-            font-size: 2rem;
-            color: var(--text-muted);
-            opacity: 0.3;
-        }
-
-        body.state-preparing .timer-val {
-            background: linear-gradient(45deg, #a855f7, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shakePrep 0.3s ease-in-out infinite alternate;
-        }
-
-        body.state-hard.state-preparing .timer-val {
-            background: linear-gradient(45deg, #3b82f6, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        body.state-running .timer-val {
-            color: var(--run-color);
-        }
-
-        .score-label {
-            font-size: 1.25rem;
-            font-weight: 900;
-            color: var(--text-muted);
-            text-align: center;
-            min-height: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .score-val {
-            font-size: 4.5rem;
-            font-weight: 900;
-            text-align: center;
-            min-height: 85px;
-            color: var(--text-main);
-            transition: color 0.3s ease;
-            line-height: 1;
-            letter-spacing: -2px;
-        }
-
-        .summary-title {
-            font-size: 5.5rem;
-            font-weight: 900;
-            letter-spacing: -2px;
-            line-height: 1;
-            color: var(--text-main);
-            animation: countUpIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .summary-subtitle {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            margin-top: 1rem;
-            margin-bottom: 2rem;
-            max-width: 400px;
-            text-align: center;
-            animation: fadeInMsg 0.6s ease-in;
-        }
-
-        .summary-box {
-            background: #f3f4f6;
-            border: 2px solid #e5e7eb;
-            border-radius: 24px;
-            padding: 1.5rem;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            transition: background-color 0.6s ease, border-color 0.6s ease;
-        }
-
-        body.state-hard .summary-box {
-            background: #374151;
-            border-color: #4b5563;
-        }
-
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.25rem;
-            font-weight: 900;
-            color: var(--text-main);
-        }
-
-        .rounds-grid {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-            height: 75px;
-            border-radius: 12px;
+            font-family: 'Arial', sans-serif;
             overflow: hidden;
         }
 
-        .round-box {
-            flex: 1;
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-start;
-            padding: 8px;
-            font-size: 1.25rem;
-            font-weight: 900;
-            position: relative;
-            color: #fff;
-            transform-origin: bottom;
-            animation: fillGridChain 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            opacity: 0;
+        #game-container {
+            text-align: center;
         }
 
-        .round-box:nth-child(1) { animation-delay: 0.1s; }
-        .round-box:nth-child(2) { animation-delay: 0.2s; }
-        .round-box:nth-child(3) { animation-delay: 0.3s; }
-        .round-box:nth-child(4) { animation-delay: 0.4s; }
-        .round-box:nth-child(5) { animation-delay: 0.5s; }
-
-        @keyframes fillGridChain {
-            0% { transform: scaleY(0) scaleX(0.8) skew(10deg); opacity: 0; filter: blur(4px); }
-            40% { transform: scaleY(1.15) scaleX(1) skew(-4deg); opacity: 1; filter: blur(0px); }
-            70% { transform: scaleY(0.95) scaleX(1) skew(2deg); }
-            100% { transform: scaleY(1) scaleX(1) skew(0deg); opacity: 1; }
+        #color-box {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease;
         }
 
-        .round-box::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.2) 100%);
-            z-index: 1;
-        }
-
-        .round-box span { z-index: 2; }
-
-        .round-box.grade-poor { background-color: #f87171; } 
-        .round-box.grade-ok { background-color: #fbbf24; } 
-        .round-box.grade-good { background-color: #60a5fa; } 
-        .round-box.grade-great { background-color: #34d399; } 
-        .round-box.grade-perfect { background-color: #10b981; } 
-
-        .card-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            position: relative;
-            height: 60px;
-        }
-
-        .instructions {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            max-width: 450px;
-            line-height: 1.4;
-            transition: color 0.3s ease;
-        }
-
-        .btn-reset {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #e5e7eb;
-            outline: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 10px;
+            background-color: #4CAF50;
+            color: white;
+            margin: 10px;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
-        body.state-hard .btn-reset {
-            background: #4b5563;
-            border-color: #6b7280;
+        .btn:hover {
+            background-color: #45a049;
         }
 
-        .btn-reset:hover {
-            transform: scale(1.15) rotate(180deg);
-            background: #e5e7eb;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        .btn:active {
+            transform: scale(0.95);
         }
 
-        body.state-hard .btn-reset:hover {
-            background: #6b7280;
-        }
-
-        .btn-reset svg {
-            fill: var(--text-main);
-            width: 24px;
-            height: 24px;
-            transition: transform 0.3s ease;
-        }
-
-        .btn-reset:hover svg { transform: scale(1.1); }
-
-        .restart-nav-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        
-        .restart-nav-container span {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            transition: color 0.3s ease;
-        }
-
-        .restart-nav-container:hover span { color: var(--text-main); }
-
-        .btn-restart-nav {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        body.state-hard .btn-restart-nav {
-            background: #4b5563;
-            border-color: #6b7280;
-        }
-
-        .btn-restart-nav:hover {
-            transform: scale(1.1) rotate(-45deg);
-            background: #e5e7eb;
-            border-color: #d1d5db;
-        }
-
-        body.state-hard .btn-restart-nav:hover {
-            background: #6b7280;
-            border-color: #9ca3af;
-        }
-
-        .btn-restart-nav svg {
-            fill: var(--text-main);
-            width: 18px;
-            height: 18px;
-        }
-
-        .restart-summary-container {
-            position: absolute;
-            bottom: 38px;
-            right: 48px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 10;
-            animation: fadeInMsg 0.4s ease-in;
-        }
-
-        .restart-summary-label {
-            font-size: 0.95rem;
-            font-weight: 900;
-            color: var(--text-main);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: #f3f4f6;
-            padding: 6px 12px;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        body.state-hard .restart-summary-label {
-            background: #4b5563;
-            border-color: #6b7280;
-        }
-        
-        .btn-restart-summary {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-            outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        body.state-hard .btn-restart-summary {
-            background: #4b5563;
-            border-color: #6b7280;
-        }
-
-        body.state-hard .btn-restart-summary:hover {
-            background: #6b7280;
-        }
-
-        .btn-restart-summary:hover {
-            transform: scale(1.12) translateX(-3px);
-            background: #e5e7eb;
-        }
-
-        .btn-restart-summary svg {
-            fill: var(--text-main);
-            width: 20px;
-            height: 20px;
-        }
-
-        .animate-pop { animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.85); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes shakePrep {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-2px); }
-        }
-
-        .animate-shake { animation: shakeTotal 0.5s ease-in-out; }
-
-        @keyframes shakeTotal {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-3px); }
-            85% { transform: translateX(3px); }
-        }
-
-        .fade-in { animation: fadeInMsg 0.5s ease-in; }
-
-        @keyframes fadeInMsg {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes countUpIn {
-            0% { opacity: 0; transform: translateY(35px) scale(0.85); }
-            60% { transform: translateY(-8px) scale(1.03); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .hard-mode-toggle {
-            position: absolute;
-            top: 24px;
-            right: 32px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            background: #f3f4f6;
-            transition: all 0.3s ease;
-        }
-
-        body.state-hard .hard-mode-toggle {
-            background: #4b5563;
-            border-color: #6b7280;
-            color: #d1d5db;
-        }
-
-        .hard-mode-toggle:hover {
-            border-color: #d1d5db;
-            color: var(--text-main);
-        }
-
-        .hard-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--text-muted);
-            transition: background-color 0.3s;
-        }
-
-        body.state-hard .hard-indicator {
-            background-color: #ef4444;
-            box-shadow: 0 0 8px #ef4444;
+        #score {
+            font-size: 24px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-card" id="gameCard">
-        <div class="hard-mode-toggle" id="hardToggleBtn">
-            <span>DIFÍCIL</span>
-            <div class="hard-indicator"></div>
-        </div>
-
-        <div class="restart-summary-container" id="restartSummaryContainer" style="display: none;">
-            <div class="restart-summary-label" id="restartSummaryLabel">Volver</div>
-            <button class="btn-restart-summary" id="restartSummaryBtn" aria-label="Atrás/Reiniciar">
-                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-        </div>
-
-        <div class="card-top" id="TopBarWithRounds">
-            <div class="round-display">Ronda: <span id="roundVal">1</span>/5</div>
-        </div>
-
-        <div class="target-bar" id="targetBarWrapper" style="display: flex;">
-            <span class="target-label">Tiempo objetivo:</span>
-            <div class="target-value">
-                <span id="targetVal">0.00</span>s
-                <span id="hardBadge" style="display: none;" class="hard-badge">Difícil</span>
+    <div id="game-container">
+        <h1>¡Adivina el Color!</h1>
+        <div id="color-box" style="background-color: #3498db;"></div>
+        <p id="color-name">Cargando...</p>
+        
+        <div id="buttons-container">
             </div>
-        </div>
 
-        <div class="main-display" id="mainDisplayArea">
-            <div class="timer-val" id="timerVal">0.00</div>
-            <div class="score-label" id="scoreLabel"></div>
-            <div class="score-val" id="scoreVal"></div>
-        </div>
-
-        <div class="card-bottom" id="cardBottomNav">
-            <div class="restart-nav-container" id="restartNavBtn" title="Reiniciar Partida">
-                <button class="btn-restart-nav" aria-label="Reiniciar Ronda">
-                    <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H1a8 8 0 1 0 11-8z"/></svg>
-                </button>
-                <span>Reiniciar</span>
-            </div>
-            
-            <div class="instructions" id="instructions">
-                Mantén espacio para cargar. Suelta para iniciar el conteo, pulsa otra vez para parar.
-            </div>
-            <button class="btn-reset" id="nextBtn" aria-label="Siguiente">
-                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-        </div>
+        <div id="score">Puntuación: 0</div>
     </div>
 
     <script>
-        const GAME_STATES = {
-            IDLE: 0,
-            PREPARING: 1,
-            RUNNING: 2,
-            STOPPED: 3,
-            SUMMARY: 4
+        // Generación de sonidos usando la Web Audio API (sin dependencias externas)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, type, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type; // 'sine', 'square', 'triangle', 'sawtooth'
+            osc.frequency.value = freq;
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Sonidos específicos del otro juego
+        const soundEffects = {
+            correct: () => playSound(600, 'triangle', 0.3),
+            wrong: () => playSound(200, 'square', 0.4),
+            start: () => playSound(440, 'sine', 0.5)
         };
 
-        let currentState = GAME_STATES.IDLE;
-        let targetTime = 0.00;
-        let timerStart = 0;
-        let timerInterval = null;
-        let elapsedTime = 0;
-        let round = 1;
-        let totalScore = 0;
-        let roundScores = [];
-        let hardMode = false;
-        let stopCooldown = false;
+        // Lógica del juego
+        const colors = [
+            { name: "Rojo", hex: "#e74c3c" },
+            { name: "Azul", hex: "#3498db" },
+            { name: "Verde", hex: "#2ecc71" },
+            { name: "Amarillo", hex: "#f1c40f" },
+            { name: "Púrpura", hex: "#9b59b6" },
+            { name: "Naranja", hex: "#e67e22" }
+        ];
 
-        const body = document.body;
-        const gameCard = document.getElementById('gameCard');
-        const targetBarWrapper = document.getElementById('targetBarWrapper');
-        const targetVal = document.getElementById('targetVal');
-        const roundVal = document.getElementById('roundVal');
-        const timerVal = document.getElementById('timerVal');
-        const scoreLabel = document.getElementById('scoreLabel');
-        let scoreVal = document.getElementById('scoreVal');
-        const instructions = document.getElementById('instructions');
-        const nextBtn = document.getElementById('nextBtn');
-        const restartNavBtn = document.getElementById('restartNavBtn');
-        const restartSummaryContainer = document.getElementById('restartSummaryContainer');
-        const restartSummaryBtn = document.getElementById('restartSummaryBtn');
-        const mainDisplayArea = document.getElementById('mainDisplayArea');
-        const cardBottomNav = document.getElementById('cardBottomNav');
-        const hardToggleBtn = document.getElementById('hardToggleBtn');
-        const hardBadge = document.getElementById('hardBadge');
+        let score = 0;
+        let targetColor = {};
 
-        function generateTarget() {
-            targetTime = Math.floor(Math.random() * 901 + 100) / 100;
-            targetVal.textContent = targetTime.toFixed(2);
-        }
-
-        function getCalculatedScore(elapsed, target) {
-            let diff = Math.abs(elapsed - target);
-            let multiplier = hardMode ? 4.0 : 2.5;
-            let rawScore = 10 - (diff * multiplier);
-            return Math.max(0, rawScore);
-        }
-
-        function getGradeClass(score) {
-            if (score < 5) return 'grade-poor';
-            if (score < 7) return 'grade-ok';
-            if (score < 8.5) return 'grade-good';
-            if (score < 9.5) return 'grade-great';
-            return 'grade-perfect';
-        }
-
-        function getSummaryFlavorText(score) {
-            if (score >= 45) return "¡Impecable! Tienes una precisión asombrosa.";
-            if (score >= 35) return "Excelente nivel. Tienes un gran control del tiempo.";
-            if (score >= 25) return "Buen resultado, pero aún puedes afinar más tu ritmo.";
-            return "Sigue practicando, no es tan fácil clavar el tiempo de memoria.";
-        }
-
-        function showSummaryScreen() {
-            currentState = GAME_STATES.SUMMARY;
-            
-            document.getElementById('TopBarWithRounds').style.display = "none";
-            targetBarWrapper.style.display = "none";
-            restartNavBtn.style.display = "none";
-            restartSummaryContainer.style.display = "flex";
-
-            let avg = (totalScore / 5).toFixed(2);
-            let summaryFlavor = getSummaryFlavorText(totalScore);
-
-            let gridHTML = roundScores.map(score => {
-                let grade = getGradeClass(score);
-                return `<div class="round-box ${grade}"><span>${Math.round(score)}</span></div>`;
-            }).join('');
-
-            mainDisplayArea.innerHTML = `
-                <div class="summary-title" id="summaryTitle">${avg} <span style="font-size: 2.5rem; letter-spacing: 0;">/ 10</span></div>
-                <div class="summary-subtitle">${summaryFlavor}</div>
-                <div class="summary-box">
-                    <div class="summary-header">
-                        <span>Notas por ronda</span>
-                        <span>Total: ${Math.round(totalScore)}/50</span>
-                    </div>
-                    <div class="rounds-grid">
-                        ${gridHTML}
-                    </div>
-                </div>
-            `;
-
-            instructions.textContent = "¡Partida finalizada!";
-            nextBtn.innerHTML = '<svg style="transform: rotate(180deg);" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
-        }
-
-        function resetGameDisplay() {
-            timerVal.textContent = "0.00";
-            scoreLabel.textContent = "";
-            scoreVal.textContent = "";
-            scoreVal.className = 'score-val';
-            instructions.className = 'instructions';
-            gameCard.className = 'game-card';
-            
-            document.getElementById('TopBarWithRounds').style.display = "flex";
-            targetBarWrapper.style.display = "flex";
-
-            mainDisplayArea.innerHTML = `
-                <div class="timer-val" id="timerVal">0.00</div>
-                <div class="score-label" id="scoreLabel"></div>
-                <div class="score-val" id="scoreVal"></div>
-            `;
-            
-            cardBottomNav.style.display = "flex";
-            restartNavBtn.style.display = "flex";
-            restartSummaryContainer.style.display = "none";
-            
-            nextBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
-
-            const recreatedTimerVal = document.getElementById('timerVal');
-            const recreatedScoreLabel = document.getElementById('scoreLabel');
-            const recreatedScoreVal = document.getElementById('scoreVal');
-            return { recreatedTimerVal, recreatedScoreLabel, recreatedScoreVal };
-        }
+        const colorBox = document.getElementById('color-box');
+        const colorNameText = document.getElementById('color-name');
+        const buttonsContainer = document.getElementById('buttons-container');
+        const scoreDisplay = document.getElementById('score');
 
         function nextRound() {
-            if (currentState === GAME_STATES.SUMMARY) {
-                round = 1;
-                totalScore = 0;
-                roundScores = [];
-            } else if (currentState !== GAME_STATES.STOPPED && currentState !== GAME_STATES.IDLE) {
-                return;
-            }
-            
-            const refs = resetGameDisplay();
-            window.currTimerVal = refs.recreatedTimerVal;
-            window.currScoreLabel = refs.recreatedScoreLabel;
-            window.currScoreVal = refs.recreatedScoreVal;
+            // Seleccionar color objetivo (nombre a mostrar)
+            const targetNameIndex = Math.floor(Math.random() * colors.length);
+            targetColor = colors[targetNameIndex];
+            colorNameText.innerText = `¿Cuál es el color "${targetColor.name}"?`;
 
-            generateTarget();
-            const roundDisplayEl = document.getElementById('roundVal');
-            if(roundDisplayEl) roundDisplayEl.textContent = round;
-            hardBadge.style.display = hardMode ? "inline-block" : "none";
-            currentState = GAME_STATES.IDLE;
-            stopCooldown = false;
-            instructions.textContent = "Mantén espacio para cargar. Suelta para iniciar el cronómetro.";
-            gameCard.classList.add('animate-pop');
-        }
-
-        function advanceRoundOrSummary() {
-            if (currentState === GAME_STATES.SUMMARY) {
-                nextRound();
-            } else if (currentState !== GAME_STATES.STOPPED && currentState !== GAME_STATES.IDLE) {
-                return;
-            }
-
-            if (currentState === GAME_STATES.STOPPED) {
-                if (round < 5) {
-                    round++;
-                    nextRound();
-                } else {
-                    showSummaryScreen();
+            // Mezclar opciones visuales (cajas de colores)
+            // Nos aseguramos de incluir el color correcto y rellenar con otros aleatorios
+            let options = [targetColor];
+            while(options.length < 3) {
+                let randomColor = colors[Math.floor(Math.random() * colors.length)];
+                if(!options.includes(randomColor)) {
+                    options.push(randomColor);
                 }
-            } else if (currentState === GAME_STATES.IDLE) {
-                nextRound();
             }
+            // Barajar las opciones
+            options.sort(() => Math.random() - 0.5);
+
+            // Renderizar botones
+            buttonsContainer.innerHTML = '';
+            options.forEach(color => {
+                const btn = document.createElement('button');
+                btn.classList.add('btn');
+                btn.style.backgroundColor = color.hex;
+                btn.onclick = () => checkAnswer(color.name);
+                buttonsContainer.appendChild(btn);
+            });
         }
 
-        nextBtn.addEventListener('click', advanceRoundOrSummary);
-
-        function triggerRestart() {
-            round = 1;
-            totalScore = 0;
-            roundScores = [];
+        function checkAnswer(selectedName) {
+            if (selectedName === targetColor.name) {
+                score += 10;
+                soundEffects.correct();
+            } else {
+                score = Math.max(0, score - 5);
+                soundEffects.wrong();
+            }
+            scoreDisplay.innerText = `Puntuación: ${score}`;
             nextRound();
         }
 
-        restartNavBtn.addEventListener('click', triggerRestart);
-        restartSummaryBtn.addEventListener('click', triggerRestart);
-
-        hardToggleBtn.addEventListener('click', () => {
-            hardMode = !hardMode;
-            if (hardMode) {
-                body.classList.add('state-hard');
-            } else {
-                body.classList.remove('state-hard');
-            }
-            hardBadge.style.display = hardMode ? "inline-block" : "none";
-            
-            if(currentState === GAME_STATES.IDLE) {
-                generateTarget();
-            }
-        });
-
-        generateTarget();
-        window.currTimerVal = timerVal;
-        window.currScoreLabel = scoreLabel;
-        window.currScoreVal = scoreVal;
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-
-                if (currentState === GAME_STATES.SUMMARY) return;
-
-                if (currentState === GAME_STATES.IDLE) {
-                    currentState = GAME_STATES.PREPARING;
-                    body.classList.add('state-preparing');
-                    instructions.textContent = "Cargando... Suelta para empezar.";
-                }
-                else if (currentState === GAME_STATES.RUNNING) {
-                    stopTimer();
-                }
-                else if (currentState === GAME_STATES.STOPPED && !stopCooldown) {
-                    advanceRoundOrSummary();
-                }
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'Space') {
-                if (currentState === GAME_STATES.PREPARING) {
-                    startTimer();
-                } else if (currentState === GAME_STATES.STOPPED) {
-                    stopCooldown = false;
-                }
-            }
-        });
-
-        function startTimer() {
-            currentState = GAME_STATES.RUNNING;
-            body.classList.add('state-running');
-            
-            if (hardMode) {
-                instructions.textContent = "Modo Difícil activo. ¡Cronómetro oculto! Pulsa espacio para parar.";
-            } else {
-                instructions.textContent = "Pulsa espacio otra vez para parar.";
-            }
-
-            timerStart = performance.now();
-            timerInterval = setInterval(() => {
-                let now = performance.now();
-                elapsedTime = (now - timerStart) / 1000;
-                
-                if (!hardMode) {
-                    window.currTimerVal.textContent = elapsedTime.toFixed(2);
-                } else {
-                    window.currTimerVal.textContent = "??";
-                }
-            }, 10);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-
-            currentState = GAME_STATES.STOPPED;
-            stopCooldown = true;
-            body.classList.remove('state-preparing', 'state-running');
-
-            let finalScore = getCalculatedScore(elapsedTime, targetTime);
-
-            totalScore += finalScore;
-            roundScores.push(finalScore);
-
-            window.currTimerVal.textContent = elapsedTime.toFixed(2);
-            window.currScoreLabel.textContent = `Nota Ronda ${round}`;
-            
-            let grade = getGradeClass(finalScore);
-            window.currScoreVal.className = `score-val ${grade}`;
-            window.currScoreVal.textContent = Math.round(finalScore);
-
-            instructions.textContent = "Pulsa espacio o haz clic en la flecha para continuar.";
-
-            if (round < 5) {
-                nextBtn.classList.add('animate-shake');
-                setTimeout(() => nextBtn.classList.remove('animate-shake'), 600);
-            } else {
-                nextBtn.classList.add('animate-shake');
-                setTimeout(() => nextBtn.classList.remove('animate-shake'), 600);
-            }
-        }
+        // Iniciar el juego
+        soundEffects.start();
+        nextRound();
     </script>
 </body>
 </html>
