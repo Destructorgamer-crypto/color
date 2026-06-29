@@ -109,7 +109,7 @@
             border-radius: 16px;
             margin-bottom: 30px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: background-color 0.3s ease;
+            transition: background-color 0.1s ease;
             background-color: #ddd;
         }
 
@@ -421,6 +421,38 @@
         function playClickSound() {
             playSound(800, 0.05, 'triangle');
         }
+
+        function playSliderSound() {
+            playSound(600, 0.02, 'sine');
+        }
+
+        function playNextRoundSound() {
+            playSound(440, 0.1, 'sine');
+            setTimeout(() => playSound(880, 0.1, 'sine'), 80);
+        }
+
+        // Animación progresiva de conteo de puntos (como en Dialed)
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            const isFinal = id === 'final-score';
+            let startTimestamp = null;
+            
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentVal = progress * (end - start) + start;
+                
+                obj.innerText = isFinal ? `${currentVal.toFixed(2)} / 50.00` : `+${currentVal.toFixed(2)}`;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerText = isFinal ? `${end.toFixed(2)} / 50.00` : `+${end.toFixed(2)}`;
+                    if(end > 0) playSuccessSound(); // Sonidito satisfactorio al terminar de subir
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
     </script>
 
     <script>
@@ -477,7 +509,7 @@
             generateRandomColor();
             
             const targetDisplay = document.getElementById('target-color-display');
-            targetDisplay.style.backgroundColor = hsvToHex(targetH, targetS, targetV);
+            targetDisplay.style.backgroundColor = hsvHex(targetH, targetS, targetV);
             
             // Ocultar elementos interactivos durante los 5 segundos que se muestra el color
             document.getElementById('sliders-group').style.display = 'none';
@@ -496,17 +528,16 @@
 
             showScreen('play-screen');
 
-            // Después de 5 segundos, habilitar la adivinanza del usuario
+            // Después de 5 segundos, habilitar adivinanza
             setTimeout(() => {
                 timerContainer.style.display = 'none';
                 
-                // Poner el display en un color gris/neutro para que no lo vea mientras ajusta
-                targetDisplay.style.backgroundColor = '#e0e0e0';
-
                 // Reiniciar sliders a valores predeterminados ciegos
                 document.getElementById('hue-slider').value = 180;
                 document.getElementById('sat-slider').value = 50;
                 document.getElementById('val-slider').value = 50;
+                
+                // Aplicar el color en tiempo real desde el segundo 0 del ajuste del usuario
                 updatePlayerColor();
 
                 document.getElementById('sliders-group').style.display = 'flex';
@@ -522,6 +553,13 @@
             document.getElementById('hue-val').innerText = `${h}°`;
             document.getElementById('sat-val').innerText = `${s}%`;
             document.getElementById('val-val').innerText = `${v}%`;
+
+            // En tiempo real, actualizar el display para que el usuario vaya viendo lo que hace
+            const targetDisplay = document.getElementById('target-color-display');
+            targetDisplay.style.backgroundColor = hsvHex(h, s, v);
+            
+            // Sonidito de mover las barras (muy sutil)
+            playSliderSound();
         }
 
         function getPlayerHsv() {
@@ -546,29 +584,26 @@
             
             let totalDiff = (diffH / 360) * 50 + (diffS / 100) * 25 + (diffV / 100) * 25; 
             
-            // Queremos una puntuación sobre 10.00, con 2 decimales.
-            // 0% de diferencia = 10.00 puntos, Máxima diferencia = 0.00 puntos
+            // Puntuación sobre 10.00, con 2 decimales.
             let roundScore = Math.max(0, 10 - (totalDiff * (10 / 56))); 
             roundScore = parseFloat(roundScore.toFixed(2));
 
             totalScore = parseFloat((totalScore + roundScore).toFixed(2));
 
-            // Renderizar resultados
-            document.getElementById('preview-target').style.backgroundColor = hsvToHex(targetH, targetS, targetV);
-            document.getElementById('preview-player').style.backgroundColor = hsvToHex(player.h, player.s, player.v);
+            // Renderizar colores objetivo e intento
+            document.getElementById('preview-target').style.backgroundColor = hsvHex(targetH, targetS, targetV);
+            document.getElementById('preview-player').style.backgroundColor = hsvHex(player.h, player.s, player.v);
             
-            document.getElementById('round-score').innerText = `+${roundScore.toFixed(2)}`;
+            // Animación del número subiendo progresivamente
+            animateValue('round-score', 0, roundScore, 800);
             
             let feedback = "";
             if(roundScore >= 9.50) {
                 feedback = "¡Perfecto! Has clavado el color.";
-                playSuccessSound();
             } else if(roundScore >= 8.00) {
                 feedback = "¡Brillante! Estuviste muy cerca.";
-                playSuccessSound();
             } else if(roundScore >= 5.00) {
                 feedback = "¡Nada mal! Se puede mejorar.";
-                playSound(300, 0.15, 'sine');
             } else {
                 feedback = "¡Demasiado lejos de la realidad!";
                 playSound(150, 0.2, 'sawtooth');
@@ -589,12 +624,13 @@
         }
 
         function nextStep() {
-            playClickSound();
+            playNextRoundSound();
             if(currentRound < maxRounds) {
                 currentRound++;
                 startRound();
             } else {
-                document.getElementById('final-score').innerText = `${totalScore.toFixed(2)} / 50.00`;
+                // Animación de subida en el resultado global final
+                animateValue('final-score', 0, totalScore, 1200);
                 
                 let finalFeedback = "";
                 if(totalScore === 50.00) finalFeedback = "¡Dios del Color! Nadie te gana.";
