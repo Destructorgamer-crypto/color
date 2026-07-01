@@ -3,267 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dialed Color - Pro Edition</title>
+    <title>INDEXUM - Color game</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+
         :root {
-            --bg: #121212;
-            --surface: #1e1e1e;
-            --text: #f5f5f7;
-            --accent: #ffffff;
+            --bg-page: #ffffff;
+            --text-main: #000000;
+            --popup-bg: #09090b;
+            --popup-text: #ffffff;
         }
-        
+
         body, html {
-            margin: 0; padding: 0; height: 100%;
-            background-color: var(--bg); color: var(--text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-page); color: var(--text-main);
+            font-family: 'Inter', sans-serif;
             display: flex; justify-content: center; align-items: center;
-            overflow: hidden; user-select: none;
+            overflow: hidden; user-select: none; -webkit-user-select: none;
+        }
+
+        /* Utilidad de Animaciones */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-out { animation: fadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.05); } }
+        
+        /* Pantalla de Inicio */
+        #start-screen { text-align: center; }
+        #start-screen h1 { font-size: 3rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -2px; }
+        #start-btn {
+            background: #000; color: #fff; border: none;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
+            border-radius: 30px; cursor: pointer; transition: transform 0.1s;
+        }
+        #start-btn:active { transform: scale(0.95); }
+
+        /* Pantalla de Juego (Caja Principal) */
+        #game-screen { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        #game-box {
+            position: relative;
+            width: 90vmin; height: 90vmin; max-width: 600px; max-height: 600px;
+            border-radius: 32px; background-color: #333;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden; transition: background-color 0.1s;
+        }
+
+        /* Headers en el juego */
+        .game-header {
+            position: absolute; top: 25px; width: 100%;
+            display: flex; justify-content: space-between;
+            padding: 0 35px; box-sizing: border-box;
+            color: rgba(255,255,255,0.7); font-weight: 800; z-index: 10;
         }
         
-        #app {
-            width: 100%; max-width: 420px; padding: 30px;
-            box-sizing: border-box; display: flex;
-            flex-direction: column; align-items: center;
-        }
-        
-        .logo {
-            font-size: 14px; font-weight: 700; letter-spacing: 2px;
-            color: #666; margin-bottom: 30px; text-transform: uppercase;
-        }
-        
-        #color-box {
-            width: 100%; aspect-ratio: 1/1; max-height: 280px;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
-            margin-bottom: 40px;
-        }
-        
-        /* Contador fluido de 500 a 0 */
+        /* Contador Central */
         #timer {
-            font-size: 6rem; font-weight: 900;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -3px; height: 120px;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem; font-weight: 900; color: #fff;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-variant-numeric: tabular-nums; letter-spacing: -4px;
         }
-        
-        /* Puntuación final: Solo el número */
-        #score {
-            font-size: 7rem; font-weight: 900;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -4px; height: 120px;
-            display: none; align-items: center; justify-content: center;
+
+        /* Sliders Personalizados */
+        #sliders-container {
+            position: absolute; left: 20px; top: 50%;
+            transform: translateY(-50%); display: flex; gap: 15px; height: 70%; z-index: 10;
         }
-        
-        .controls {
-            width: 100%; display: none;
-            flex-direction: column; gap: 28px;
+        .slider-track {
+            position: relative; width: 28px; height: 100%;
+            border-radius: 14px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+            touch-action: none; cursor: pointer;
         }
-        
-        .slider-group {
-            display: flex; flex-direction: column; gap: 12px;
+        .slider-thumb {
+            position: absolute; width: 20px; height: 20px;
+            background: #fff; border-radius: 50%;
+            left: 4px; top: 50%; transform: translateY(-50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            pointer-events: none; transition: transform 0.05s;
         }
-        
-        .slider-group label {
-            font-size: 11px; font-weight: 700; color: #888;
-            letter-spacing: 1.5px; text-transform: uppercase;
+
+        /* Botón Confirmar (Bottom Right) */
+        #submit-btn {
+            position: absolute; bottom: 30px; right: 30px;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: rgba(255,255,255,0.9); border: none;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.1s; z-index: 10;
         }
-        
-        /* Estilos Premium para los Sliders Dinámicos */
-        input[type=range] {
-            -webkit-appearance: none; width: 100%;
-            height: 14px; border-radius: 7px;
-            outline: none; cursor: pointer;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        #submit-btn:active { transform: scale(0.9); }
+        #submit-btn svg { width: 30px; height: 30px; fill: #000; }
+
+        /* --- PANTALLA FINAL (Clon de la Imagen 2) --- */
+        #result-screen { position: absolute; z-index: 100; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
+        .popup-card {
+            background: var(--popup-bg); color: var(--popup-text);
+            width: 90%; max-width: 420px; border-radius: 24px;
+            padding: 30px; box-sizing: border-box; box-shadow: 0 25px 80px rgba(0,0,0,0.8);
+            position: relative;
         }
+        .popup-header { display: flex; justify-content: space-between; font-size: 13px; color: #888; font-weight: 600; margin-bottom: 20px; }
+        .close-btn { background: #333; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 12px; }
         
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 32px; width: 32px;
-            border-radius: 50%; background: #fff;
-            border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            transition: transform 0.1s;
-        }
+        .score-huge { display: flex; align-items: baseline; letter-spacing: -2px; margin-bottom: 5px; }
+        .score-huge .num { font-size: 5rem; font-weight: 900; }
+        .score-huge .total { font-size: 2.5rem; color: #555; font-weight: 800; }
+        .sarcastic-text { color: #888; font-size: 14px; font-weight: 600; margin-bottom: 25px; line-height: 1.4; }
+
+        .breakdown-box { border: 1.5px solid #222; border-radius: 16px; padding: 15px; margin-bottom: 20px; }
+        .breakdown-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 15px; }
+        .breakdown-header span:last-child { color: #ccc; }
         
-        input[type=range]::-webkit-slider-thumb:active {
-            transform: scale(0.9);
-        }
-        
-        #btn-submit {
-            width: 100%; padding: 18px; margin-top: 40px;
-            background: var(--text); color: var(--bg);
-            border: none; border-radius: 14px;
-            font-size: 16px; font-weight: 700;
-            cursor: pointer; display: none;
-            transition: transform 0.1s;
-        }
-        
-        #btn-submit:active { transform: scale(0.97); }
+        .history-grid { display: flex; gap: 4px; height: 75px; }
+        .history-item { flex: 1; position: relative; overflow: hidden; }
+        .history-item:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .history-item:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        .history-score { position: absolute; top: 6px; left: 6px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); z-index: 2; }
+
+        .popup-actions { display: flex; gap: 10px; }
+        .popup-actions button { flex: 1; padding: 15px; border-radius: 30px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; }
+        .btn-outline { background: transparent; color: #fff; border: 1.5px solid #fff !important; flex: 0.4 !important; }
+        .btn-white { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div class="logo">Dialed Color</div>
-    <div id="color-box"></div>
-    
-    <div id="timer">500</div>
-    <div id="score"></div>
-    
-    <div class="controls" id="controls">
-        <div class="slider-group">
-            <label>Hue</label>
-            <input type="range" id="h" min="0" max="360" value="180">
-        </div>
-        <div class="slider-group">
-            <label>Saturation</label>
-            <input type="range" id="s" min="0" max="100" value="50">
-        </div>
-        <div class="slider-group">
-            <label>Lightness</label>
-            <input type="range" id="l" min="0" max="100" value="50">
+    <!-- Inicio -->
+    <div id="start-screen" class="fade-in">
+        <h1>Dialed Color</h1>
+        <button id="start-btn" onclick="initGame()">JUGAR</button>
+    </div>
+
+    <!-- Juego -->
+    <div id="game-screen" class="hidden">
+        <div id="game-box">
+            <div class="game-header">
+                <div>dialed.gg</div>
+                <div id="round-indicator">1 / 5</div>
+            </div>
+            
+            <div id="timer">500</div>
+            
+            <div id="sliders-container" class="hidden">
+                <div class="slider-track" id="track-h"><div class="slider-thumb"></div></div>
+                <div class="slider-track" id="track-s"><div class="slider-thumb"></div></div>
+                <div class="slider-track" id="track-l"><div class="slider-thumb"></div></div>
+            </div>
+
+            <button id="submit-btn" class="hidden" onclick="submitGuess()">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h-2zm0 6h2v2h-2z" transform="rotate(45, 12, 12)"/></svg>
+            </button>
         </div>
     </div>
-    
-    <button id="btn-submit">CONFIRMAR</button>
-</div>
+
+    <!-- Resultados (Copia de la imagen) -->
+    <div id="result-screen" class="hidden">
+        <div class="popup-card fade-in">
+            <div class="popup-header">
+                <div>#7.298.206 / <span style="color: #666">7.411.881</span></div>
+                <div class="close-btn" onclick="location.reload()">X</div>
+            </div>
+            <div class="score-huge">
+                <div class="num" id="final-score">0.00</div>
+                <div class="total">/50</div>
+            </div>
+            <div class="sarcastic-text" id="sarcastic-text">Mediocre. The off-white of achievement. The eggshell of ambition.</div>
+            
+            <div class="breakdown-box">
+                <div class="breakdown-header">
+                    <span>ELA</span>
+                    <span id="final-score-small">0.00/50</span>
+                </div>
+                <div class="history-grid" id="history-grid">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+
+            <div class="popup-actions">
+                <button class="btn-outline" onclick="location.reload()">ELA</button>
+                <button class="btn-white" onclick="initGame()">Play Again</button>
+            </div>
+        </div>
+    </div>
 
 <script>
-    let target = { h: 0, s: 0, l: 0 };
+    // --- Audio Engine (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let actx;
+
+    function initAudio() { if (!actx) actx = new AudioContext(); }
     
-    const box = document.getElementById('color-box');
-    const timerEl = document.getElementById('timer');
-    const scoreEl = document.getElementById('score');
-    const controls = document.getElementById('controls');
-    const btn = document.getElementById('btn-submit');
-    
-    const hIn = document.getElementById('h');
-    const sIn = document.getElementById('s');
-    const lIn = document.getElementById('l');
-
-    function init() {
-        // Generar color aleatorio puro
-        target = {
-            h: Math.floor(Math.random() * 361),
-            s: Math.floor(Math.random() * 101),
-            l: Math.floor(Math.random() * 101)
-        };
-        
-        box.style.backgroundColor = `hsl(${target.h}, ${target.s}%, ${target.l}%)`;
-        
-        timerEl.style.display = 'flex';
-        scoreEl.style.display = 'none';
-        controls.style.display = 'none';
-        btn.style.display = 'none';
-        
-        startTimer();
-    }
-
-    function startTimer() {
-        const duration = 5000;
-        const startValue = 500;
-        const startTime = performance.now();
-
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Calculo fluido
-            timerEl.textContent = Math.round(startValue * (1 - progress));
-
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                startGuess();
-            }
-        }
-        requestAnimationFrame(update);
-    }
-
-    function startGuess() {
-        timerEl.style.display = 'none';
-        
-        // Reiniciar sliders al centro visual
-        hIn.value = 180;
-        sIn.value = 50;
-        lIn.value = 50;
-        
-        controls.style.display = 'flex';
-        btn.style.display = 'block';
-        btn.textContent = 'CONFIRMAR';
-        btn.onclick = calculateScore;
-        
-        updateSliders();
-    }
-
-    // Sistema de sliders dinámicos (estilo Dialed Pro)
-    function updateSliders() {
-        const h = hIn.value;
-        const s = sIn.value;
-        const l = lIn.value;
-        
-        box.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
-        
-        // Gradiente arcoíris ajustado a la saturación y brillo actuales
-        hIn.style.background = `linear-gradient(to right, 
-            hsl(0, ${s}%, ${l}%), hsl(60, ${s}%, ${l}%), 
-            hsl(120, ${s}%, ${l}%), hsl(180, ${s}%, ${l}%), 
-            hsl(240, ${s}%, ${l}%), hsl(300, ${s}%, ${l}%), 
-            hsl(360, ${s}%, ${l}%))`;
-            
-        // Gradiente de saturación ajustado al tono y brillo
-        sIn.style.background = `linear-gradient(to right, 
-            hsl(${h}, 0%, ${l}%), hsl(${h}, 100%, ${l}%))`;
-            
-        // Gradiente de brillo ajustado al tono y saturación
-        lIn.style.background = `linear-gradient(to right, 
-            hsl(${h}, ${s}%, 0%), hsl(${h}, ${s}%, 50%), hsl(${h}, ${s}%, 100%))`;
-    }
-
-    [hIn, sIn, lIn].forEach(input => {
-        input.addEventListener('input', updateSliders);
-    });
-
-    function calculateScore() {
-        const uH = parseInt(hIn.value);
-        const uS = parseInt(sIn.value);
-        const uL = parseInt(lIn.value);
-        
-        // Distancia circular para el tono (máximo 180 grados de error)
-        let diffH = Math.abs(uH - target.h);
-        diffH = Math.min(diffH, 360 - diffH); 
-        
-        let diffS = Math.abs(uS - target.s);
-        let diffL = Math.abs(uL - target.l);
-        
-        // Normalización a escala 0-1
-        let nH = diffH / 180;
-        let nS = diffS / 100;
-        let nL = diffL / 100;
-        
-        // Distancia euclidiana en el espacio HSL
-        let distance = Math.sqrt(nH*nH + nS*nS + nL*nL);
-        const maxDistance = Math.sqrt(3); // Aprox 1.732
-        
-        let finalScore = Math.max(0, 100 - (distance / maxDistance) * 100);
-        
-        showResult(Math.round(finalScore));
-    }
-
-    function showResult(scoreValue) {
-        controls.style.display = 'none';
-        
-        // Una sola línea, solo el número, según tus instrucciones
-        scoreEl.textContent = scoreValue;
-        scoreEl.style.display = 'flex';
-        
-        btn.textContent = 'JUGAR OTRA VEZ';
-        btn.onclick = init;
-    }
-
-    // Arranque
-    init();
-</script>
-</body>
-</html>
+    function playTone(freq, type, duration, vol) {
+        if (!actx) return;
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, actx.currentTime);
+        gain.gain.setValueAtTime(vol, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, actx.Normally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
