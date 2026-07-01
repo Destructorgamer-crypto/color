@@ -2,111 +2,64 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Color Clone</title>
     <style>
-        body { margin: 0; background: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        #game { text-align: center; width: 90%; max-width: 400px; }
-        #color-box { width: 100%; height: 200px; border-radius: 12px; margin-bottom: 20px; transition: background 0.3s; }
-        #counter { font-size: 3rem; font-weight: bold; margin-bottom: 20px; font-variant-numeric: tabular-nums; }
-        .slider-group { margin: 20px 0; }
-        input[type=range] { width: 100%; cursor: pointer; }
-        button { padding: 10px 25px; border: none; border-radius: 6px; background: #fff; color: #000; font-weight: bold; cursor: pointer; }
-        #result { font-size: 2rem; font-weight: bold; }
+        :root { --bg: #0d0d0d; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        #game-container { width: 320px; text-align: center; }
+        #preview { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 24px; transition: background 0.2s; }
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        input[type=range] { width: 100%; height: 6px; accent-color: #fff; cursor: pointer; }
+        button { background: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; }
+        #score-display { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div id="game">
-    <div id="view-memorize" style="display: none;">
-        <div id="counter">500</div>
-        <div id="color-box-target"></div>
-    </div>
-
-    <div id="view-play" style="display: none;">
-        <div id="color-box-user" style="background: hsl(0, 50%, 50%);"></div>
-        <div class="slider-group">
+<div id="game-container">
+    <div id="preview"></div>
+    <div id="ui-area">
+        <div id="status-text">Memoriza el color...</div>
+        <div id="controls" style="display:none;">
             <input type="range" id="h" min="0" max="360" value="0">
             <input type="range" id="s" min="0" max="100" value="50">
             <input type="range" id="l" min="0" max="100" value="50">
+            <button onclick="check()">LISTO</button>
         </div>
-        <button onclick="checkScore()">ENVIAR</button>
-    </div>
-
-    <div id="view-result" style="display: none;">
-        <div id="result"></div>
-        <br>
-        <button onclick="startGame()">JUGAR OTRA VEZ</button>
     </div>
 </div>
 
 <script>
-    let targetColor = { h: 0, s: 0, l: 0 };
-    let interval;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playBeep() {
-        const osc = audioCtx.createOscillator();
-        osc.connect(audioCtx.destination);
-        osc.frequency.value = 800;
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.05);
+    let target = {h:0, s:0, l:0};
+    const preview = document.getElementById('preview');
+    
+    function start() {
+        target = { h: Math.floor(Math.random()*360), s: Math.floor(Math.random()*100), l: Math.floor(Math.random()*100) };
+        preview.style.backgroundColor = `hsl(${target.h}, ${target.s}%, ${target.l}%)`;
+        document.getElementById('status-text').innerText = "Memoriza el color...";
+        document.getElementById('controls').style.display = 'none';
+        
+        setTimeout(() => {
+            preview.style.backgroundColor = '#333';
+            document.getElementById('status-text').innerText = "Adivina:";
+            document.getElementById('controls').style.display = 'block';
+        }, 3000);
     }
 
-    function startGame() {
-        // Generar color aleatorio
-        targetColor = {
-            h: Math.floor(Math.random() * 360),
-            s: Math.floor(Math.random() * 100),
-            l: Math.floor(Math.random() * 100)
-        };
-        
-        document.getElementById('color-box-target').style.backgroundColor = `hsl(${targetColor.h}, ${targetColor.s}%, ${targetColor.l}%)`;
-        document.getElementById('color-box-target').style.height = "200px";
-        document.getElementById('color-box-target').style.borderRadius = "12px";
-        
-        showView('view-memorize');
-        let count = 500;
-        document.getElementById('counter').innerText = count;
-        
-        interval = setInterval(() => {
-            count--;
-            document.getElementById('counter').innerText = count;
-            if(count <= 0) {
-                clearInterval(interval);
-                showView('view-play');
-            }
-        }, 10); // 500 unidades en 5000ms = 10ms por unidad
+    // Actualización en tiempo real
+    document.querySelectorAll('input').forEach(i => i.addEventListener('input', () => {
+        preview.style.backgroundColor = `hsl(${document.getElementById('h').value}, ${document.getElementById('s').value}%, ${document.getElementById('l').value}%)`;
+    }));
+
+    function check() {
+        const h = document.getElementById('h').value;
+        const s = document.getElementById('s').value;
+        const l = document.getElementById('l').value;
+        const diff = Math.abs(h-target.h) + Math.abs(s-target.s) + Math.abs(l-target.l);
+        const score = Math.max(0, 300 - diff);
+        document.getElementById('ui-area').innerHTML = `<div id="score-display">${Math.round(score)}</div><button onclick="location.reload()">JUGAR OTRA VEZ</button>`;
     }
-
-    function showView(id) {
-        ['view-memorize', 'view-play', 'view-result'].forEach(v => document.getElementById(v).style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-    }
-
-    // Actualización tiempo real
-    ['h', 's', 'l'].forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-            const h = document.getElementById('h').value;
-            const s = document.getElementById('s').value;
-            const l = document.getElementById('l').value;
-            document.getElementById('color-box-user').style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
-        });
-    });
-
-    function checkScore() {
-        const h = parseInt(document.getElementById('h').value);
-        const s = parseInt(document.getElementById('s').value);
-        const l = parseInt(document.getElementById('l').value);
-        
-        // Calcular diferencia (distancia absoluta)
-        const diff = Math.abs(h - targetColor.h) + Math.abs(s - targetColor.s) + Math.abs(l - targetColor.l);
-        const score = Math.max(0, 300 - diff); // Ajustar escala según necesites
-        
-        document.getElementById('result').innerText = Math.round(score);
-        showView('view-result');
-    }
-
-    startGame();
+    
+    start();
 </script>
 </body>
 </html>
