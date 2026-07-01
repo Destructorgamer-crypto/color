@@ -2,672 +2,111 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Match - dialed.gg</title>
+    <title>Color Clone</title>
     <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #111111;
-            --panel-bg: #f5f5f5;
-            --accent: #4a90e2;
-            --border-radius: 20px;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #game-container {
-            background-color: var(--panel-bg);
-            padding: 40px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-            width: 460px;
-            text-align: center;
-            position: relative;
-            box-sizing: border-box;
-            border: 1px solid #eaeaea;
-        }
-
-        h1 {
-            margin-top: 0;
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 15px;
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .screen {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out forwards;
-        }
-
-        .active-screen {
-            display: block;
-        }
-
-        /* Pantalla de inicio */
-        .start-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .btn-play {
-            background-color: #111;
-            color: #fff;
-            border: none;
-            padding: 18px 40px;
-            font-size: 1.2rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 25px;
-            font-weight: 700;
-            width: 100%;
-        }
-
-        .btn-play:hover {
-            background-color: #333;
-            transform: translateY(-2px);
-        }
-
-        .btn-play:active {
-            transform: scale(0.98);
-        }
-
-        /* Pantalla de juego */
-        .round-indicator {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #888;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .color-display {
-            width: 100%;
-            height: 200px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: background-color 0.05s ease;
-            background-color: #ddd;
-        }
-
-        /* Contador numérico de 5 segundos */
-        .memorize-timer {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #222;
-            margin-bottom: 25px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .sliders-group {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            margin-bottom: 35px;
-        }
-
-        .slider-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .slider-label {
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            color: #444;
-        }
-
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-
-        input[type=range]:focus {
-            outline: none;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 12px;
-            cursor: pointer;
-            background: #e0e0e0;
-            border-radius: 6px;
-            border: none;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #ccc;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -7px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            transition: transform 0.1s, border-color 0.2s;
-        }
-
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-            border-color: #999;
-        }
-
-        /* Sliders con colores dinámicos */
-        #hue-slider::-webkit-slider-runnable-track {
-            background: linear-gradient(to right, red, yellow, green, cyan, blue, magenta, red);
-        }
-        #sat-slider::-webkit-slider-runnable-track {
-            background: linear-gradient(to right, #808080, #ff0000);
-        }
-        #val-slider::-webkit-slider-runnable-track {
-            background: linear-gradient(to right, #000000, #ffffff);
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            background-color: #111;
-            transition: background 0.2s, transform 0.1s;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-action:hover {
-            background-color: #333;
-        }
-
-        .btn-action:active {
-            transform: scale(0.98);
-        }
-
-        /* Pantalla de resultados de ronda / final */
-        .result-boxes {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .color-box-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #666;
-        }
-
-        .color-box-preview {
-            width: 130px;
-            height: 130px;
-            border-radius: 16px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .score-display {
-            font-size: 4rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            color: #000;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            letter-spacing: -1px;
-        }
-
-        /* Para mostrar la nota final toda en una línea junto a la puntuación máxima */
-        .final-score-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .feedback-text {
-            font-size: 1.2rem;
-            font-weight: 500;
-            margin-bottom: 30px;
-            color: #444;
-        }
-
-        /* Animaciones */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            80% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
-        }
-
-        .shake {
-            animation: shake 0.3s ease-in-out;
-        }
-
-        .confetti-container { 
-            position: absolute; 
-            width: 100%; 
-            height: 100%; 
-            top: 0; 
-            left: 0; 
-            pointer-events: none; 
-            overflow: hidden; 
-            border-radius: var(--border-radius);
-        }
-
-        .confetti-piece {
-            position: absolute;
-            width: 12px;
-            height: 24px;
-            background: #000;
-            top: -20px;
-            opacity: 0;
-        }
-
-        @keyframes drop {
-            0% { opacity: 1; top: -20px; transform: translateX(0) rotate(0deg); }
-            100% { opacity: 0; top: 120px; transform: translateX(30px) rotate(45deg); }
-        }
+        body { margin: 0; background: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #game { text-align: center; width: 90%; max-width: 400px; }
+        #color-box { width: 100%; height: 200px; border-radius: 12px; margin-bottom: 20px; transition: background 0.3s; }
+        #counter { font-size: 3rem; font-weight: bold; margin-bottom: 20px; font-variant-numeric: tabular-nums; }
+        .slider-group { margin: 20px 0; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        button { padding: 10px 25px; border: none; border-radius: 6px; background: #fff; color: #000; font-weight: bold; cursor: pointer; }
+        #result { font-size: 2rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="start-screen" class="screen active-screen">
-            <div class="start-wrapper">
-                <h1>Color Match</h1>
-                <p>Memoriza el color que aparecerá en pantalla y recrea sus valores de Tono, Saturación y Brillo.</p>
-                <p style="font-size: 0.95rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px;">5 Rondas</p>
-                <button class="btn-play" onclick="startGame()">JUGAR</button>
-            </div>
-        </div>
-
-        <div id="play-screen" class="screen">
-            <div class="round-indicator">Ronda <span id="current-round">1</span>/5</div>
-            
-            <div class="memorize-timer" id="memorize-counter" style="display: none;">500</div>
-
-            <div class="color-display" id="target-color-display"></div>
-            
-            <div class="sliders-group" id="sliders-group" style="display: none;">
-                <div class="slider-container">
-                    <div class="slider-label"><span>Tono (Hue)</span><span id="hue-val">0°</span></div>
-                    <input type="range" id="hue-slider" min="0" max="360" value="0" oninput="updatePlayerColor()">
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label"><span>Saturación (Sat)</span><span id="sat-val">100%</span></div>
-                    <input type="range" id="sat-slider" min="0" max="100" value="100" oninput="updatePlayerColor()">
-                </div>
-                <div class="slider-container">
-                    <div class="slider-label"><span>Brillo (Value)</span><span id="val-val">50%</span></div>
-                    <input type="range" id="val-slider" min="0" max="100" value="50" oninput="updatePlayerColor()">
-                </div>
-            </div>
-
-            <button class="btn-action" id="action-btn" onclick="confirmGuess()" style="display: none;">CONFIRMAR</button>
-        </div>
-
-        <div id="round-result-screen" class="screen">
-            <h1>Ronda Finalizada</h1>
-            <div class="result-boxes">
-                <div class="color-box-wrapper">
-                    <div class="color-box-preview" id="preview-target"></div>
-                    <span>Objetivo</span>
-                </div>
-                <div class="color-box-wrapper">
-                    <div class="color-box-preview" id="preview-player"></div>
-                    <span>Tu intento</span>
-                </div>
-            </div>
-            <div class="score-display" id="round-score">0.00</div>
-            <div class="feedback-text" id="round-feedback"></div>
-            <button class="btn-action" id="next-btn" onclick="nextStep()">SIGUIENTE RONDA</button>
-        </div>
-
-        <div id="game-over-screen" class="screen">
-            <h1>¡Partida Finalizada!</h1>
-            <p style="color: #666; margin-bottom: 5px; font-size: 1rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Puntuación Total</p>
-            <div class="final-score-container">
-                <div class="score-display" id="final-score" style="font-size: 4.5rem; margin-bottom: 0;">0.00</div>
-                <span style="font-size: 1.5rem; font-weight: 700; color: #888;">/ 50.00</span>
-            </div>
-            <div class="feedback-text" id="final-feedback" style="margin-top: 15px;"></div>
-            
-            <div id="confetti-wrapper" class="confetti-container"></div>
-            
-            <button class="btn-play" onclick="resetGame()">VOLVER A JUGAR</button>
-        </div>
+<div id="game">
+    <div id="view-memorize" style="display: none;">
+        <div id="counter">500</div>
+        <div id="color-box-target"></div>
     </div>
 
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    <div id="view-play" style="display: none;">
+        <div id="color-box-user" style="background: hsl(0, 50%, 50%);"></div>
+        <div class="slider-group">
+            <input type="range" id="h" min="0" max="360" value="0">
+            <input type="range" id="s" min="0" max="100" value="50">
+            <input type="range" id="l" min="0" max="100" value="50">
+        </div>
+        <button onclick="checkScore()">ENVIAR</button>
+    </div>
 
-        function playSound(freq, duration, type = 'sine', rampDown = true) {
-            try {
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.value = freq;
-                
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                if(rampDown) {
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                } else {
-                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + duration - 0.05);
-                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
-                }
+    <div id="view-result" style="display: none;">
+        <div id="result"></div>
+        <br>
+        <button onclick="startGame()">JUGAR OTRA VEZ</button>
+    </div>
+</div>
 
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+<script>
+    let targetColor = { h: 0, s: 0, l: 0 };
+    let interval;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {
-                console.error(e);
+    function playBeep() {
+        const osc = audioCtx.createOscillator();
+        osc.connect(audioCtx.destination);
+        osc.frequency.value = 800;
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function startGame() {
+        // Generar color aleatorio
+        targetColor = {
+            h: Math.floor(Math.random() * 360),
+            s: Math.floor(Math.random() * 100),
+            l: Math.floor(Math.random() * 100)
+        };
+        
+        document.getElementById('color-box-target').style.backgroundColor = `hsl(${targetColor.h}, ${targetColor.s}%, ${targetColor.l}%)`;
+        document.getElementById('color-box-target').style.height = "200px";
+        document.getElementById('color-box-target').style.borderRadius = "12px";
+        
+        showView('view-memorize');
+        let count = 500;
+        document.getElementById('counter').innerText = count;
+        
+        interval = setInterval(() => {
+            count--;
+            document.getElementById('counter').innerText = count;
+            if(count <= 0) {
+                clearInterval(interval);
+                showView('view-play');
             }
-        }
+        }, 10); // 500 unidades en 5000ms = 10ms por unidad
+    }
 
-        function playSuccessSound() {
-            playSound(523.25, 0.15, 'sine'); // C5
-            setTimeout(() => playSound(659.25, 0.25, 'sine', false), 100); // E5
-        }
+    function showView(id) {
+        ['view-memorize', 'view-play', 'view-result'].forEach(v => document.getElementById(v).style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
 
-        function playClickSound() {
-            playSound(800, 0.05, 'triangle');
-        }
+    // Actualización tiempo real
+    ['h', 's', 'l'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            const h = document.getElementById('h').value;
+            const s = document.getElementById('s').value;
+            const l = document.getElementById('l').value;
+            document.getElementById('color-box-user').style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+        });
+    });
 
-        function playSliderSound() {
-            playSound(600, 0.02, 'sine');
-        }
+    function checkScore() {
+        const h = parseInt(document.getElementById('h').value);
+        const s = parseInt(document.getElementById('s').value);
+        const l = parseInt(document.getElementById('l').value);
+        
+        // Calcular diferencia (distancia absoluta)
+        const diff = Math.abs(h - targetColor.h) + Math.abs(s - targetColor.s) + Math.abs(l - targetColor.l);
+        const score = Math.max(0, 300 - diff); // Ajustar escala según necesites
+        
+        document.getElementById('result').innerText = Math.round(score);
+        showView('view-result');
+    }
 
-        function playNextRoundSound() {
-            playSound(440, 0.1, 'sine');
-            setTimeout(() => playSound(880, 0.1, 'sine'), 80);
-        }
-
-        // Animación progresiva de conteo de puntos
-        function animateValue(id, start, end, duration) {
-            const obj = document.getElementById(id);
-            let startTimestamp = null;
-            
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = progress * (end - start) + start;
-                
-                obj.innerText = currentVal.toFixed(2);
-                
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    obj.innerText = end.toFixed(2);
-                    if(end > 0) playSuccessSound();
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-    </script>
-
-    <script>
-        let currentRound = 1;
-        let totalScore = 0;
-        let targetH, targetS, targetV;
-        const maxRounds = 5;
-
-        // Convierte HSV a HEX para el renderizado css
-        function hsvToHex(h, s, v) {
-            s = s / 100;
-            v = v / 100;
-            let c = v * s;
-            let x = c * (1 - Math.abs((h / 60) % 2 - 1));
-            let m = v - c;
-            let r = 0, g = 0, b = 0;
-
-            if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
-            else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
-            else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
-            else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
-            else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
-            else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-
-            let r_hex = Math.round((r + m) * 255).toString(16).padStart(2, '0');
-            let g_hex = Math.round((g + m) * 255).toString(16).padStart(2, '0');
-            let b_hex = Math.round((b + m) * 255).toString(16).padStart(2, '0');
-
-            return `#${r_hex}${g_hex}${b_hex}`;
-        }
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-            document.getElementById(screenId).classList.add('active-screen');
-        }
-
-        function startGame() {
-            playClickSound();
-            currentRound = 1;
-            totalScore = 0;
-            startRound();
-        }
-
-        function generateRandomColor() {
-            // Colores más aleatorios y variados en todo el espectro (aleatoriedad completa en H, S y V)
-            targetH = Math.floor(Math.random() * 361);
-            targetS = Math.floor(Math.random() * 101); // 0 a 100%
-            targetV = Math.floor(Math.random() * 101); // 0 a 100%
-        }
-
-        function startRound() {
-            document.getElementById('current-round').innerText = currentRound;
-            generateRandomColor();
-            
-            const targetDisplay = document.getElementById('target-color-display');
-            targetDisplay.style.backgroundColor = hsvToHex(targetH, targetS, targetV);
-            
-            // Ocultar barras y botón mientras se memoriza el color
-            document.getElementById('sliders-group').style.display = 'none';
-            document.getElementById('action-btn').style.display = 'none';
-            
-            // Mostrar contador numérico que va desde 500 hasta 0
-            const memorizeCounter = document.getElementById('memorize-counter');
-            memorizeCounter.style.display = 'block';
-            memorizeCounter.innerText = "500";
-            
-            let currentCountValue = 500;
-            const countInterval = setInterval(() => {
-                currentCountValue -= 10; 
-                if (currentCountValue <= 0) {
-                    currentCountValue = 0;
-                    clearInterval(countInterval);
-                }
-                memorizeCounter.innerText = currentCountValue;
-            }, 100);
-
-            showScreen('play-screen');
-
-            // Después de 5 segundos, ocultar el número, dejar el recuadro a cero y habilitar sliders
-            setTimeout(() => {
-                memorizeCounter.style.display = 'none';
-                
-                // Reiniciar sliders a valores predeterminados ciegos
-                document.getElementById('hue-slider').value = 180;
-                document.getElementById('sat-slider').value = 50;
-                document.getElementById('val-slider').value = 50;
-                
-                // Actualizar el color en tiempo real desde el segundo 0
-                updatePlayerColor();
-
-                document.getElementById('sliders-group').style.display = 'flex';
-                document.getElementById('action-btn').style.display = 'block';
-            }, 5000);
-        }
-
-        function updatePlayerColor() {
-            let h = parseInt(document.getElementById('hue-slider').value);
-            let s = parseInt(document.getElementById('sat-slider').value);
-            let v = parseInt(document.getElementById('val-slider').value);
-            
-            document.getElementById('hue-val').innerText = `${h}°`;
-            document.getElementById('sat-val').innerText = `${s}%`;
-            document.getElementById('val-val').innerText = `${v}%`;
-
-            // En tiempo real, actualizar el display para que el usuario vaya viendo lo que hace
-            const targetDisplay = document.getElementById('target-color-display');
-            targetDisplay.style.backgroundColor = hsvToHex(h, s, v);
-            
-            // Sonidito de mover las barras
-            playSliderSound();
-        }
-
-        function getPlayerHsv() {
-            return {
-                h: parseInt(document.getElementById('hue-slider').value),
-                s: parseInt(document.getElementById('sat-slider').value),
-                v: parseInt(document.getElementById('val-slider').value)
-            };
-        }
-
-        function confirmGuess() {
-            playClickSound();
-            
-            let player = getPlayerHsv();
-            
-            // Cálculo de distancia (Máxima diferencia posible = 360 + 100 + 100 = 560)
-            let diffH = Math.abs(targetH - player.h);
-            if (diffH > 180) diffH = 360 - diffH; 
-            
-            let diffS = Math.abs(targetS - player.s);
-            let diffV = Math.abs(targetV - player.v);
-            
-            let totalDiff = (diffH / 360) * 50 + (diffS / 100) * 25 + (diffV / 100) * 25; 
-            
-            // Puntuación sobre 10.00 por ronda, con 2 decimales.
-            let roundScore = Math.max(0, 10 - (totalDiff * (10 / 56))); 
-            roundScore = parseFloat(roundScore.toFixed(2));
-
-            totalScore = parseFloat((totalScore + roundScore).toFixed(2));
-
-            // Renderizar colores objetivo e intento
-            document.getElementById('preview-target').style.backgroundColor = hsvToHex(targetH, targetS, targetV);
-            document.getElementById('preview-player').style.backgroundColor = hsvToHex(player.h, player.s, player.v);
-            
-            // Animación del número subiendo progresivamente
-            animateValue('round-score', 0, roundScore, 800);
-            
-            let feedback = "";
-            if(roundScore >= 9.50) {
-                feedback = "¡Perfecto! Has clavado el color.";
-            } else if(roundScore >= 8.00) {
-                feedback = "¡Brillante! Estuviste muy cerca.";
-            } else if(roundScore >= 5.00) {
-                feedback = "¡Nada mal! Se puede mejorar.";
-            } else {
-                feedback = "¡Demasiado lejos de la realidad!";
-                playSound(150, 0.2, 'sawtooth');
-                const container = document.getElementById('game-container');
-                container.classList.add('shake');
-                setTimeout(() => container.classList.remove('shake'), 300);
-            }
-            
-            document.getElementById('round-feedback').innerText = feedback;
-
-            if(currentRound === maxRounds) {
-                document.getElementById('next-btn').innerText = "VER RESULTADOS FINALES";
-            } else {
-                document.getElementById('next-btn').innerText = "SIGUIENTE RONDA";
-            }
-
-            showScreen('round-result-screen');
-        }
-
-        function nextStep() {
-            playNextRoundSound();
-            if(currentRound < maxRounds) {
-                currentRound++;
-                startRound();
-            } else {
-                // Animación de subida en el resultado global final sobre 50.00
-                animateValue('final-score', 0, totalScore, 1200);
-                
-                let finalFeedback = "";
-                if(totalScore === 50.00) finalFeedback = "¡Dios del Color! Nadie te gana.";
-                else if(totalScore >= 45.00) finalFeedback = "¡Excelente visión cromática!";
-                else if(totalScore >= 35.00) finalFeedback = "Tienes buena memoria visual.";
-                else finalFeedback = "Sigue practicando tu percepción de colores.";
-                
-                document.getElementById('final-feedback').innerText = finalFeedback;
-                
-                if(totalScore >= 40.00) launchConfetti();
-
-                showScreen('game-over-screen');
-            }
-        }
-
-        function resetGame() {
-            playClickSound();
-            showScreen('start-screen');
-        }
-
-        function launchConfetti() {
-            const wrapper = document.getElementById('confetti-wrapper');
-            wrapper.innerHTML = '';
-            for(let i = 0; i < 60; i++) {
-                let piece = document.createElement('div');
-                piece.className = 'confetti-piece';
-                piece.style.left = Math.random() * 100 + '%';
-                piece.style.background = ['#111', '#333', '#555', '#777', '#999', '#bbb'][Math.floor(Math.random() * 6)];
-                piece.style.animation = `drop ${Math.random() * 1.5 + 1}s linear forwards`;
-                piece.style.animationDelay = Math.random() * 0.5 + 's';
-                wrapper.appendChild(piece);
-            }
-        }
-    </script>
+    startGame();
+</script>
 </body>
 </html>
