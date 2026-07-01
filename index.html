@@ -2,64 +2,423 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialed.gg Color Clone</title>
     <style>
-        :root { --bg: #0d0d0d; --text: #ffffff; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        #game-container { width: 320px; text-align: center; }
-        #preview { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 24px; transition: background 0.2s; }
-        .controls { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        input[type=range] { width: 100%; height: 6px; accent-color: #fff; cursor: pointer; }
-        button { background: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; }
-        #score-display { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
+        :root {
+            --bg-color: #0d0d0d;
+            --panel-bg: #161616;
+            --text-main: #f0f0f0;
+            --text-muted: #707070;
+            --border-color: #262626;
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        #color-display {
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            background-color: #1a1a1a;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.05s linear;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        #countdown {
+            font-size: 5.5rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            font-variant-numeric: tabular-nums;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        #countdown.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #controls.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            background: #222;
+            cursor: pointer;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(0,0,0,0.2);
+            transition: transform 0.1s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition: transform 0.1s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+        }
+
+        button:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 255, 255, 0.22);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .score-display {
+            font-size: 4.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin: 10px 0;
+            background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            gap: 12px;
+        }
+
+        .comp-box {
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="preview"></div>
-    <div id="ui-area">
-        <div id="status-text">Memoriza el color...</div>
-        <div id="controls" style="display:none;">
-            <input type="range" id="h" min="0" max="360" value="0">
-            <input type="range" id="s" min="0" max="100" value="50">
-            <input type="range" id="l" min="0" max="100" value="50">
-            <button onclick="check()">LISTO</button>
+<div id="app">
+    <div class="header" id="status-label">Memoriza el color</div>
+    
+    <div id="color-display">
+        <div id="countdown">500</div>
+    </div>
+
+    <div id="controls">
+        <div class="slider-group">
+            <div class="slider-label"><span>Tono (Hue)</span></div>
+            <input type="range" id="slider-h" min="0" max="360" value="180">
         </div>
+        <div class="slider-group">
+            <div class="slider-label"><span>Saturación</span></div>
+            <input type="range" id="slider-s" min="0" max="100" value="50">
+        </div>
+        <div class="slider-group">
+            <div class="slider-label"><span>Brillo (Value)</span></div>
+            <input type="range" id="slider-v" min="0" max="100" value="50">
+        </div>
+        <button id="btn-submit" onclick="submitGuess()">CONFIRMAR</button>
+    </div>
+
+    <div id="result-screen">
+        <div class="score-display" id="final-score-val">0</div>
+        <div class="comparison-grid">
+            <div class="comp-box" id="box-target">Objetivo</div>
+            <div class="comp-box" id="box-guess">Tu Elección</div>
+        </div>
+        <button onclick="initGame()">JUGAR DE NUEVO</button>
     </div>
 </div>
 
 <script>
-    let target = {h:0, s:0, l:0};
-    const preview = document.getElementById('preview');
-    
-    function start() {
-        target = { h: Math.floor(Math.random()*360), s: Math.floor(Math.random()*100), l: Math.floor(Math.random()*100) };
-        preview.style.backgroundColor = `hsl(${target.h}, ${target.s}%, ${target.l}%)`;
-        document.getElementById('status-text').innerText = "Memoriza el color...";
-        document.getElementById('controls').style.display = 'none';
+    let targetHSV = { h: 0, s: 0, v: 0 };
+    let countdownTimer = null;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(freq, duration = 0.04, type = 'sine') {
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    // Conversión precisa HSV a HSL para compatibilidad CSS pura
+    function hsvToHsl(h, s, v) {
+        s /= 100;
+        v /= 100;
+        const l = v * (1 - s / 2);
+        const sl = (l === 0 || l === 1) ? 0 : (v - l) / Math.min(l, 1 - l);
+        return `hsl(${h}, ${Math.round(sl * 100)}%, ${Math.round(l * 100)}%)`;
+    }
+
+    // Distancia visual ponderada para puntuación precisa de 0 a 100
+    function calculateAccuracy(h1, s1, v1, h2, s2, v2) {
+        let diffH = Math.abs(h1 - h2);
+        if (diffH > 180) diffH = 360 - diffH;
         
-        setTimeout(() => {
-            preview.style.backgroundColor = '#333';
-            document.getElementById('status-text').innerText = "Adivina:";
-            document.getElementById('controls').style.display = 'block';
-        }, 3000);
+        // Ponderación visual: el tono importa menos si la saturación o el brillo son muy bajos
+        const factorS = Math.min(s1, s2) / 100;
+        const factorV = Math.min(v1, v2) / 100;
+        const distH = (diffH / 180) * 100 * factorS * factorV;
+        const distS = Math.abs(s1 - s2);
+        const distV = Math.abs(v1 - v2);
+        
+        const totalError = Math.sqrt((distH * distH * 1.5) + (distS * distS) + (distV * distV));
+        const maxPossibleError = Math.sqrt((100 * 100 * 1.5) + (100 * 100) + (100 * 100));
+        
+        return Math.max(0, Math.round(100 * (1 - (totalError / maxPossibleError))));
     }
 
-    // Actualización en tiempo real
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', () => {
-        preview.style.backgroundColor = `hsl(${document.getElementById('h').value}, ${document.getElementById('s').value}%, ${document.getElementById('l').value}%)`;
-    }));
+    function updateSliderBackgrounds(h, s, v) {
+        const sliderH = document.getElementById('slider-h');
+        const sliderS = document.getElementById('slider-s');
+        const sliderV = document.getElementById('slider-v');
 
-    function check() {
-        const h = document.getElementById('h').value;
-        const s = document.getElementById('s').value;
-        const l = document.getElementById('l').value;
-        const diff = Math.abs(h-target.h) + Math.abs(s-target.s) + Math.abs(l-target.l);
-        const score = Math.max(0, 300 - diff);
-        document.getElementById('ui-area').innerHTML = `<div id="score-display">${Math.round(score)}</div><button onclick="location.reload()">JUGAR OTRA VEZ</button>`;
+        sliderH.style.background = `linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)`;
+        sliderS.style.background = `linear-gradient(to right, ${hsvToHsl(h, 0, v)}, ${hsvToHsl(h, 100, v)})`;
+        sliderV.style.background = `linear-gradient(to right, #000000, ${hsvToHsl(h, s, 100)})`;
     }
-    
-    start();
+
+    function initGame() {
+        clearInterval(countdownTimer);
+        
+        // Colores verdaderamente aleatorios y agradables
+        targetHSV = {
+            h: Math.floor(Math.random() * 361),
+            s: Math.floor(Math.random() * 65) + 35, // Evita grises aburridos
+            v: Math.floor(Math.random() * 60) + 40  // Evita negros imposibles
+        };
+
+        const display = document.getElementById('color-display');
+        const countdownEl = document.getElementById('countdown');
+        const controls = document.getElementById('controls');
+        const resultScreen = document.getElementById('result-screen');
+        const statusLabel = document.getElementById('status-label');
+
+        controls.classList.remove('active');
+        resultScreen.style.display = 'none';
+        statusLabel.innerText = "Memoriza el color";
+        
+        display.style.backgroundColor = hsvToHsl(targetHSV.h, targetHSV.s, targetHSV.v);
+        
+        // Reiniciar sliders a un punto neutral
+        document.getElementById('slider-h').value = Math.floor(Math.random() * 360);
+        document.getElementById('slider-s').value = 50;
+        document.getElementById('slider-v').value = 50;
+
+        let timeLeft = 500;
+        countdownEl.innerText = timeLeft;
+        countdownEl.classList.add('active');
+
+        playSound(440, 0.08);
+
+        // Cuenta regresiva: 500 a 0 en exactamente 5 segundos (intervalo de 10ms)
+        countdownTimer = setInterval(() => {
+            timeLeft--;
+            countdownEl.innerText = timeLeft;
+            
+            if (timeLeft === 375 || timeLeft === 250 || timeLeft === 125) {
+                playSound(440, 0.03);
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                countdownEl.classList.remove('active');
+                startGuessingPhase();
+            }
+        }, 10);
+    }
+
+    function startGuessingPhase() {
+        playSound(880, 0.1);
+        const display = document.getElementById('color-display');
+        const controls = document.getElementById('controls');
+        const statusLabel = document.getElementById('status-label');
+
+        statusLabel.innerText = "Recrea el color";
+        controls.classList.add('active');
+        
+        updateLivePreview();
+    }
+
+    function updateLivePreview() {
+        const h = parseInt(document.getElementById('slider-h').value);
+        const s = parseInt(document.getElementById('slider-s').value);
+        const v = parseInt(document.getElementById('slider-v').value);
+
+        document.getElementById('color-display').style.backgroundColor = hsvToHsl(h, s, v);
+        updateSliderBackgrounds(h, s, v);
+    }
+
+    document.querySelectorAll('input[type=range]').forEach(input => {
+        input.addEventListener('input', updateLivePreview);
+    });
+
+    function submitGuess() {
+        playSound(600, 0.08);
+        const h = parseInt(document.getElementById('slider-h').value);
+        const s = parseInt(document.getElementById('slider-s').value);
+        const v = parseInt(document.getElementById('slider-v').value);
+
+        const score = calculateAccuracy(targetHSV.h, targetHSV.s, targetHSV.v, h, s, v);
+
+        document.getElementById('controls').classList.remove('active');
+        document.getElementById('status-label').innerText = "Resultado";
+        
+        const resultScreen = document.getElementById('result-screen');
+        resultScreen.style.display = 'flex';
+
+        // Estricto cumplimiento: Nota final en una sola línea, solo el número
+        document.getElementById('final-score-val').innerText = score;
+
+        const boxTarget = document.getElementById('box-target');
+        const boxGuess = document.getElementById('box-guess');
+
+        boxTarget.style.backgroundColor = hsvToHsl(targetHSV.h, targetHSV.s, targetHSV.v);
+        boxGuess.style.backgroundColor = hsvToHsl(h, s, v);
+    }
+
+    window.addEventListener('DOMContentLoaded', initGame);
 </script>
 </body>
 </html>
