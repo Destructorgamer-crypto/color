@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chroma — Igualar color</title>
+<title>Chroma — Memoriza el color</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,7 +16,6 @@
     --text-secondary: #8b8d93;
     --text-tertiary: #57595e;
     --accent-line: #3a3c42;
-    --success: #7de08d;
     --radius-lg: 20px;
     --radius-md: 12px;
     --radius-sm: 8px;
@@ -39,10 +38,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  .stage {
-    width: 100%;
-    max-width: 460px;
-  }
+  .stage { width: 100%; max-width: 460px; }
 
   /* ---------- Header ---------- */
   .top-bar {
@@ -57,33 +53,42 @@
     font-weight: 600;
     font-size: 15px;
     letter-spacing: 0.02em;
-    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
   .brand-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
     background: conic-gradient(from 180deg, #ff5f5f, #ffd35f, #6fe08d, #5fb8ff, #b06fff, #ff5f5f);
+    animation: spin 6s linear infinite;
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .round-track {
-    display: flex;
-    gap: 6px;
-  }
+  .top-right { display: flex; align-items: center; gap: 14px; }
 
+  .round-track { display: flex; gap: 6px; }
   .round-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--accent-line);
     transition: all 0.4s var(--ease-out);
   }
   .round-dot.filled { background: var(--text-secondary); }
   .round-dot.current { background: var(--text-primary); width: 16px; border-radius: 3px; }
+
+  .mute-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out), transform 0.15s var(--ease-out);
+  }
+  .mute-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .mute-btn:active { transform: scale(0.9); }
+  .mute-btn svg { width: 14px; height: 14px; }
 
   /* ---------- Card ---------- */
   .card {
@@ -93,6 +98,7 @@
     padding: 28px;
     position: relative;
     overflow: hidden;
+    min-height: 320px;
   }
 
   .round-label {
@@ -112,40 +118,114 @@
     letter-spacing: -0.01em;
   }
 
-  /* ---------- Target swatch ---------- */
-  .target-row {
+  .fade-panel { animation: fadePanel 0.4s var(--ease-out) both; }
+  @keyframes fadePanel {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- Start screen ---------- */
+  .start-screen { text-align: center; padding: 28px 4px; }
+  .start-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .start-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .start-sub b { color: var(--text-primary); font-weight: 500; }
+
+  /* ---------- Memorize phase ---------- */
+  .memorize-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 8px;
+  }
+
+  .ring-holder {
+    position: relative;
+    width: 168px;
+    height: 168px;
+    margin-bottom: 20px;
+  }
+
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--panel-border); stroke-width: 3; }
+  .ring-progress {
+    fill: none;
+    stroke: var(--text-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 5s linear;
+  }
+
+  .memorize-swatch {
+    position: absolute;
+    top: 14px; left: 14px; right: 14px; bottom: 14px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+    animation: breathe 2.4s ease-in-out infinite;
+    transition: opacity 0.5s var(--ease-in-out), filter 0.5s var(--ease-in-out), transform 0.5s var(--ease-in-out);
+  }
+  .memorize-swatch.pop { animation: popIn 0.4s var(--ease-out); }
+  .memorize-swatch.hidden-state {
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(0.7);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.025); }
+  }
+
+  .countdown-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  /* ---------- Placeholder (hidden target during input) ---------- */
+  .hidden-row {
     display: flex;
     align-items: center;
     gap: 14px;
     margin-bottom: 22px;
   }
-
-  .target-swatch {
-    width: 52px;
-    height: 52px;
+  .hidden-swatch {
+    width: 52px; height: 52px;
     border-radius: var(--radius-sm);
+    border: 1px dashed var(--panel-border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-tertiary);
     flex-shrink: 0;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
   }
-
-  .target-meta {
+  .hidden-swatch svg { width: 18px; height: 18px; }
+  .hidden-meta {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.6;
   }
-  .target-meta b { color: var(--text-primary); font-weight: 500; }
 
   /* ---------- Mixing pad ---------- */
-  .mix-area {
-    display: flex;
-    gap: 14px;
-    margin-bottom: 22px;
-  }
+  .mix-area { display: flex; gap: 14px; margin-bottom: 22px; }
 
   .pad-wrap {
-    flex: 1;
-    aspect-ratio: 1 / 1;
+    flex: 1; aspect-ratio: 1 / 1;
     border-radius: var(--radius-md);
     position: relative;
     cursor: crosshair;
@@ -156,10 +236,8 @@
 
   .pad-cursor {
     position: absolute;
-    width: 22px;
-    height: 22px;
-    margin-left: -11px;
-    margin-top: -11px;
+    width: 22px; height: 22px;
+    margin-left: -11px; margin-top: -11px;
     border-radius: 50%;
     border: 2px solid #fff;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.5);
@@ -178,11 +256,8 @@
   }
 
   .rail-cursor {
-    position: absolute;
-    left: 3px;
-    right: 3px;
-    height: 10px;
-    margin-top: -5px;
+    position: absolute; left: 3px; right: 3px;
+    height: 10px; margin-top: -5px;
     border-radius: 5px;
     background: #fff;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.5);
@@ -201,16 +276,11 @@
     pointer-events: none;
   }
 
-  /* ---------- Preview & submit ---------- */
-  .preview-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
+  /* ---------- Preview & buttons ---------- */
+  .preview-row { display: flex; align-items: center; gap: 14px; }
 
   .preview-swatch {
-    width: 52px;
-    height: 52px;
+    width: 52px; height: 52px;
     border-radius: var(--radius-sm);
     flex-shrink: 0;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
@@ -218,7 +288,6 @@
   }
 
   .btn {
-    flex: 1;
     height: 46px;
     border-radius: var(--radius-sm);
     border: none;
@@ -227,13 +296,10 @@
     font-size: 14px;
     letter-spacing: 0.01em;
     cursor: pointer;
-    transition: transform 0.15s var(--ease-out), background-color 0.15s var(--ease-out), opacity 0.15s var(--ease-out);
+    transition: transform 0.15s var(--ease-out), background-color 0.15s var(--ease-out), opacity 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out);
   }
 
-  .btn-primary {
-    background: var(--text-primary);
-    color: #0b0c0e;
-  }
+  .btn-primary { background: var(--text-primary); color: #0b0c0e; flex: 1; }
   .btn-primary:hover { transform: translateY(-1px); }
   .btn-primary:active { transform: translateY(0px) scale(0.98); }
   .btn-primary:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
@@ -242,42 +308,29 @@
     background: transparent;
     border: 1px solid var(--panel-border);
     color: var(--text-primary);
+    width: 100%;
   }
   .btn-ghost:hover { background: rgba(255,255,255,0.04); }
   .btn-ghost:active { transform: scale(0.98); }
 
   /* ---------- Reveal state ---------- */
-  .reveal-compare {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-
-  .compare-block {
-    flex: 1;
-    text-align: center;
-  }
-
+  .reveal-compare { display: flex; gap: 10px; margin-bottom: 18px; }
+  .compare-block { flex: 1; text-align: center; }
   .compare-swatch {
-    width: 100%;
-    aspect-ratio: 1.4 / 1;
+    width: 100%; aspect-ratio: 1.4 / 1;
     border-radius: var(--radius-md);
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
     margin-bottom: 8px;
     animation: revealIn 0.5s var(--ease-out) both;
   }
-  .compare-block:nth-child(2) .compare-swatch { animation-delay: 0.08s; }
-
+  .compare-block:nth-child(2) .compare-swatch { animation-delay: 0.1s; }
   @keyframes revealIn {
-    from { opacity: 0; transform: scale(0.94); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: scale(0.9) translateY(6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
-
   .compare-caption {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--text-tertiary);
   }
 
@@ -287,98 +340,52 @@
     border-top: 1px solid var(--panel-border);
     border-bottom: 1px solid var(--panel-border);
     margin-bottom: 20px;
+    position: relative;
+  }
+  .score-readout.glow::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.08), transparent 70%);
+    animation: glowPulse 1.6s ease-out;
+    pointer-events: none;
+  }
+  @keyframes glowPulse {
+    0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; }
   }
 
   .score-value {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 44px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    animation: scoreIn 0.45s var(--ease-out) both;
-    animation-delay: 0.2s;
+    font-size: 44px; font-weight: 500; letter-spacing: -0.02em;
   }
   .score-value span { font-size: 20px; color: var(--text-tertiary); }
-
-  @keyframes scoreIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .score-tag {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-  }
+  .score-tag { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
   /* ---------- Final results ---------- */
-  .final-total {
-    text-align: center;
-    padding: 8px 0 24px;
-  }
-
+  .final-total { text-align: center; padding: 8px 0 24px; }
   .final-total .label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary);
     margin-bottom: 10px;
   }
-
   .final-total .value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 56px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-family: 'IBM Plex Mono', monospace; font-size: 56px; font-weight: 500; letter-spacing: -0.02em;
   }
   .final-total .value span { font-size: 24px; color: var(--text-tertiary); }
 
-  .breakdown {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-
+  .breakdown { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
   .breakdown-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
     padding: 10px 12px;
     background: rgba(255,255,255,0.02);
     border-radius: var(--radius-sm);
     border: 1px solid var(--panel-border);
+    opacity: 0;
+    animation: rowIn 0.4s var(--ease-out) forwards;
   }
-
-  .breakdown-swatch {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-  }
-
-  .breakdown-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    color: var(--text-secondary);
-    flex: 1;
-  }
-
-  .breakdown-score {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    color: var(--text-primary);
-  }
-
-  .fade-panel {
-    animation: fadePanel 0.35s var(--ease-out) both;
-  }
-  @keyframes fadePanel {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+  .breakdown-swatch { width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+  .breakdown-label { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .breakdown-score { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-primary); }
 
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -389,6 +396,7 @@
     .instruction { font-size: 18px; }
     .score-value { font-size: 36px; }
     .final-total .value { font-size: 44px; }
+    .ring-holder { width: 140px; height: 140px; }
   }
 </style>
 </head>
@@ -397,7 +405,15 @@
 <div class="stage">
   <div class="top-bar">
     <div class="brand"><span class="brand-dot"></span>Chroma</div>
-    <div class="round-track" id="roundTrack"></div>
+    <div class="top-right">
+      <div class="round-track" id="roundTrack"></div>
+      <button class="mute-btn" id="muteBtn" title="Silenciar sonido" aria-label="Silenciar sonido">
+        <svg id="muteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="card" id="card"></div>
@@ -406,23 +422,124 @@
 <script>
 (function(){
   const TOTAL_ROUNDS = 5;
+  const MEMORIZE_MS = 5000;
   let round = 0;
   let scores = [];
   let targets = [];
   let current = { h: 200, s: 60, l: 50 };
   let targetColor = null;
   let dragging = null;
+  let muted = false;
+  let audioCtx = null;
+  let countdownTimer = null;
+  let phaseTimeout = null;
 
   const card = document.getElementById('card');
   const roundTrack = document.getElementById('roundTrack');
+  const muteBtn = document.getElementById('muteBtn');
+  const muteIcon = document.getElementById('muteIcon');
+
+  /* ============ SOUND ENGINE (síntesis propia, sin archivos externos) ============ */
+
+  function initAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function tone(freq, t0, dur, {type='sine', gain=0.14, attack=0.006, release=0.12, filterFreq=null, detune=0} = {}){
+    if(!audioCtx || muted) return;
+    const osc = audioCtx.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if(detune) osc.detune.setValueAtTime(detune, t0);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + dur + release);
+    let outNode = g;
+    if(filterFreq){
+      const f = audioCtx.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(filterFreq, t0);
+      osc.connect(f); f.connect(g);
+    } else {
+      osc.connect(g);
+    }
+    g.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + attack + dur + release + 0.05);
+  }
+
+  function soundStart(){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    tone(523.25, t0, 0.1, {type:'sine', gain:0.11, filterFreq:3000});
+    tone(783.99, t0 + 0.09, 0.14, {type:'sine', gain:0.1, filterFreq:3000});
+  }
+
+  function soundTick(){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    tone(1046.5, t0, 0.035, {type:'sine', gain:0.07, attack:0.001, release:0.05, filterFreq:4000});
+  }
+
+  function soundWhoosh(){
+    if(!audioCtx || muted) return;
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.1, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+    osc.frequency.setValueAtTime(520, t0);
+    osc.frequency.exponentialRampToValueAtTime(140, t0 + 0.38);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(t0); osc.stop(t0 + 0.45);
+  }
+
+  function soundClick(){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    tone(360, t0, 0.03, {type:'triangle', gain:0.09, attack:0.001, release:0.04, filterFreq:2500});
+  }
+
+  function soundReveal(score){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const base = 220 * Math.pow(2, score / 10 * 2);
+    tone(base, t0, 0.12, {type:'triangle', gain:0.1, filterFreq:4000});
+    tone(base * 1.5, t0 + 0.09, 0.16, {type:'triangle', gain:0.09, filterFreq:4000, detune:4});
+    if(score >= 8.5){
+      tone(base * 2, t0 + 0.18, 0.2, {type:'sine', gain:0.08, filterFreq:5000});
+    }
+  }
+
+  function soundFinal(ratio){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const root = 261.63 * Math.pow(2, ratio);
+    const notes = [1, 1.25, 1.5, 2];
+    notes.forEach((mult, i) => {
+      tone(root * mult, t0 + i * 0.11, 0.18, {type:'sine', gain:0.1, filterFreq:5000});
+    });
+  }
+
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteIcon.innerHTML = muted
+      ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>'
+      : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path>';
+  });
+
+  /* ============ COLOR MATH ============ */
 
   function hsl(h, s, l){ return `hsl(${h.toFixed(1)}, ${s.toFixed(1)}%, ${l.toFixed(1)}%)`; }
 
   function randomTarget(){
-    const h = Math.random() * 360;
-    const s = 35 + Math.random() * 55;
-    const l = 30 + Math.random() * 40;
-    return { h, s, l };
+    return { h: Math.random() * 360, s: 35 + Math.random() * 55, l: 30 + Math.random() * 40 };
   }
 
   function hslToRgb(h, s, l){
@@ -434,21 +551,17 @@
   }
 
   function rgbToLab(r, g, b){
-    let [x, y, z] = (function(){
-      let rr = r / 255, gg = g / 255, bb = b / 255;
-      rr = rr > 0.04045 ? Math.pow((rr + 0.055) / 1.055, 2.4) : rr / 12.92;
-      gg = gg > 0.04045 ? Math.pow((gg + 0.055) / 1.055, 2.4) : gg / 12.92;
-      bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
-      rr *= 100; gg *= 100; bb *= 100;
-      const x = rr * 0.4124 + gg * 0.3576 + bb * 0.1805;
-      const y = rr * 0.2126 + gg * 0.7152 + bb * 0.0722;
-      const z = rr * 0.0193 + gg * 0.1192 + bb * 0.9505;
-      return [x, y, z];
-    })();
-    x /= 95.047; y /= 100; z /= 108.883;
-    const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787 * t + 16/116);
-    const fx = f(x), fy = f(y), fz = f(z);
-    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+    let rr = r/255, gg = g/255, bb = b/255;
+    rr = rr > 0.04045 ? Math.pow((rr+0.055)/1.055, 2.4) : rr/12.92;
+    gg = gg > 0.04045 ? Math.pow((gg+0.055)/1.055, 2.4) : gg/12.92;
+    bb = bb > 0.04045 ? Math.pow((bb+0.055)/1.055, 2.4) : bb/12.92;
+    rr*=100; gg*=100; bb*=100;
+    const x = (rr*0.4124+gg*0.3576+bb*0.1805)/95.047;
+    const y = (rr*0.2126+gg*0.7152+bb*0.0722)/100;
+    const z = (rr*0.0193+gg*0.1192+bb*0.9505)/108.883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+    const fx=f(x), fy=f(y), fz=f(z);
+    return [116*fy-16, 500*(fx-fy), 200*(fy-fz)];
   }
 
   function deltaE(c1, c2){
@@ -464,6 +577,20 @@
     return Math.max(0, Math.round(s * 100) / 100);
   }
 
+  function animateCount(el, from, to, duration, decimals, suffix){
+    const t0 = performance.now();
+    function step(now){
+      const p = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = from + (to - from) * eased;
+      el.textContent = val.toFixed(decimals) + (suffix || '');
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ============ RENDER: round dots ============ */
+
   function renderRoundTrack(){
     roundTrack.innerHTML = '';
     for(let i = 0; i < TOTAL_ROUNDS; i++){
@@ -475,25 +602,100 @@
     }
   }
 
+  /* ============ START SCREEN ============ */
+
+  function renderStartScreen(){
+    card.innerHTML = `
+      <div class="start-screen fade-panel">
+        <div class="start-title">Chroma</div>
+        <div class="start-sub">
+          En cada ronda memorizas un color durante <b>5 segundos</b>.<br>
+          Luego se oculta y debes reproducirlo de memoria con el panel de mezcla.<br>
+          5 rondas · hasta <b>10.00</b> puntos cada una · <b>50.00</b> en total.
+        </div>
+        <button class="btn btn-primary" id="startBtn" style="width:100%;">Empezar partida</button>
+      </div>
+    `;
+    document.getElementById('startBtn').addEventListener('click', () => {
+      initAudio();
+      soundClick();
+      startRound();
+    });
+  }
+
+  /* ============ MEMORIZE PHASE ============ */
+
   function startRound(){
     targetColor = randomTarget();
     targets.push(targetColor);
     current = { h: (targetColor.h + 150) % 360, s: 55, l: 50 };
     renderRoundTrack();
-    renderPlayState();
+    renderMemorizePhase();
   }
 
-  function renderPlayState(){
+  function renderMemorizePhase(){
+    const circumference = 2 * Math.PI * 48;
     card.innerHTML = `
       <div class="round-label">Ronda ${round + 1} de ${TOTAL_ROUNDS}</div>
-      <div class="instruction">Iguala este color</div>
+      <div class="instruction">Memoriza este color</div>
+      <div class="memorize-wrap fade-panel">
+        <div class="ring-holder">
+          <svg class="ring-svg" width="168" height="168" viewBox="0 0 108 108">
+            <circle class="ring-track" cx="54" cy="54" r="48"></circle>
+            <circle class="ring-progress" id="ringProgress" cx="54" cy="54" r="48"
+              stroke-dasharray="${circumference}" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="memorize-swatch pop" id="memorizeSwatch" style="background:${hsl(targetColor.h, targetColor.s, targetColor.l)}"></div>
+        </div>
+        <div class="countdown-num" id="countdownNum">5</div>
+      </div>
+    `;
 
-      <div class="target-row">
-        <div class="target-swatch" style="background:${hsl(targetColor.h, targetColor.s, targetColor.l)}"></div>
-        <div class="target-meta">Ajusta tono y saturación en el panel.<br>Usa el riel para la luminosidad.</div>
+    soundStart();
+    const ring = document.getElementById('ringProgress');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { ring.style.strokeDashoffset = circumference; });
+    });
+
+    let remaining = 5;
+    const countdownNum = document.getElementById('countdownNum');
+    countdownTimer = setInterval(() => {
+      remaining--;
+      if(remaining > 0){
+        countdownNum.textContent = remaining;
+        soundTick();
+      } else {
+        clearInterval(countdownTimer);
+        countdownNum.textContent = '';
+      }
+    }, 1000);
+
+    phaseTimeout = setTimeout(() => {
+      const swatch = document.getElementById('memorizeSwatch');
+      if(swatch) swatch.classList.add('hidden-state');
+      soundWhoosh();
+      setTimeout(renderInputPhase, 420);
+    }, MEMORIZE_MS);
+  }
+
+  /* ============ INPUT PHASE ============ */
+
+  function renderInputPhase(){
+    card.innerHTML = `
+      <div class="round-label">Ronda ${round + 1} de ${TOTAL_ROUNDS}</div>
+      <div class="instruction fade-panel">Reprodúcelo de memoria</div>
+
+      <div class="hidden-row fade-panel">
+        <div class="hidden-swatch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+        </div>
+        <div class="hidden-meta">El color ya no es visible.<br>Ajusta tono, saturación y luz con lo que recuerdes.</div>
       </div>
 
-      <div class="mix-area">
+      <div class="mix-area fade-panel">
         <div class="pad-wrap" id="pad">
           <span class="axis-label" style="top:8px; left:10px;">S ↑</span>
           <span class="axis-label" style="bottom:8px; right:10px;">H →</span>
@@ -504,7 +706,7 @@
         </div>
       </div>
 
-      <div class="preview-row" style="margin-bottom:18px;">
+      <div class="preview-row fade-panel">
         <div class="preview-swatch" id="previewSwatch"></div>
         <button class="btn btn-primary" id="confirmBtn">Confirmar color</button>
       </div>
@@ -524,7 +726,10 @@
     rail.addEventListener('pointermove', e => { if(dragging === 'rail') moveRail(e); });
     rail.addEventListener('pointerup', () => dragging = null);
 
-    document.getElementById('confirmBtn').addEventListener('click', confirmRound);
+    document.getElementById('confirmBtn').addEventListener('click', () => {
+      soundClick();
+      confirmRound();
+    });
   }
 
   function updatePadBackground(pad){
@@ -574,14 +779,16 @@
     }
   }
 
+  /* ============ REVEAL PHASE ============ */
+
   function confirmRound(){
     const d = deltaE(current, targetColor);
     const score = scoreFromDelta(d);
     scores.push(score);
-    renderRevealState(score, d);
+    renderRevealState(score);
   }
 
-  function renderRevealState(score, d){
+  function renderRevealState(score){
     const tag = score >= 9 ? 'Casi perfecto' : score >= 7 ? 'Muy cerca' : score >= 4.5 ? 'Aceptable' : score >= 2 ? 'Lejos' : 'Muy lejos';
     card.innerHTML = `
       <div class="round-label">Ronda ${round + 1} de ${TOTAL_ROUNDS}</div>
@@ -594,18 +801,23 @@
         </div>
         <div class="compare-block">
           <div class="compare-swatch" style="background:${hsl(current.h, current.s, current.l)}"></div>
-          <div class="compare-caption">Tu color</div>
+          <div class="compare-caption">Tu recuerdo</div>
         </div>
       </div>
 
-      <div class="score-readout">
-        <div class="score-value">${score.toFixed(2)}<span>/10.00</span></div>
+      <div class="score-readout${score >= 8.5 ? ' glow' : ''}">
+        <div class="score-value"><span id="scoreNum">0.00</span><span>/10.00</span></div>
         <div class="score-tag">${tag}</div>
       </div>
 
       <button class="btn btn-primary" id="nextBtn" style="width:100%;">${round + 1 < TOTAL_ROUNDS ? 'Siguiente ronda' : 'Ver resultado final'}</button>
     `;
+
+    soundReveal(score);
+    animateCount(document.getElementById('scoreNum'), 0, score, 650, 2, '');
+
     document.getElementById('nextBtn').addEventListener('click', () => {
+      soundClick();
       round++;
       if(round < TOTAL_ROUNDS){
         startRound();
@@ -615,13 +827,15 @@
     });
   }
 
+  /* ============ FINAL PHASE ============ */
+
   function renderFinalState(){
     const total = Math.round(scores.reduce((a,b) => a+b, 0) * 100) / 100;
     let rowsHtml = '';
     for(let i = 0; i < TOTAL_ROUNDS; i++){
       const t = targets[i];
       rowsHtml += `
-        <div class="breakdown-row">
+        <div class="breakdown-row" style="animation-delay:${i * 0.06}s">
           <div class="breakdown-swatch" style="background:${hsl(t.h, t.s, t.l)}"></div>
           <div class="breakdown-label">Ronda ${i + 1}</div>
           <div class="breakdown-score">${scores[i].toFixed(2)} / 10.00</div>
@@ -634,20 +848,25 @@
 
       <div class="final-total fade-panel">
         <div class="label">Puntuación total</div>
-        <div class="value">${total.toFixed(2)}<span>/50.00</span></div>
+        <div class="value"><span id="totalNum">0.00</span><span>/50.00</span></div>
       </div>
 
       <div class="breakdown">${rowsHtml}</div>
 
-      <button class="btn btn-ghost" id="restartBtn" style="width:100%;">Jugar de nuevo</button>
+      <button class="btn btn-ghost" id="restartBtn">Jugar de nuevo</button>
     `;
+
+    soundFinal(total / 50);
+    animateCount(document.getElementById('totalNum'), 0, total, 900, 2, '');
+
     document.getElementById('restartBtn').addEventListener('click', () => {
+      soundClick();
       round = 0; scores = []; targets = [];
       startRound();
     });
   }
 
-  startRound();
+  renderStartScreen();
 })();
 </script>
 
