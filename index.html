@@ -1,204 +1,655 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INDEXUM - Color game</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chroma — Igualar color</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0c0e;
+    --bg-elevated: #131417;
+    --panel-border: #232529;
+    --text-primary: #f4f4f2;
+    --text-secondary: #8b8d93;
+    --text-tertiary: #57595e;
+    --accent-line: #3a3c42;
+    --success: #7de08d;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  }
 
-        :root {
-            --bg-page: #ffffff;
-            --text-main: #000000;
-            --popup-bg: #09090b;
-            --popup-text: #ffffff;
-        }
+  * { box-sizing: border-box; }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-page); color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden; user-select: none; -webkit-user-select: none;
-        }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
 
-        /* Utilidad de Animaciones */
-        .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .fade-out { animation: fadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.05); } }
-        
-        /* Pantalla de Inicio */
-        #start-screen { text-align: center; }
-        #start-screen h1 { font-size: 3rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -2px; }
-        #start-btn {
-            background: #000; color: #fff; border: none;
-            padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
-            border-radius: 30px; cursor: pointer; transition: transform 0.1s;
-        }
-        #start-btn:active { transform: scale(0.95); }
+  .stage {
+    width: 100%;
+    max-width: 460px;
+  }
 
-        /* Pantalla de Juego (Caja Principal) */
-        #game-screen { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        #game-box {
-            position: relative;
-            width: 90vmin; height: 90vmin; max-width: 600px; max-height: 600px;
-            border-radius: 32px; background-color: #333;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            overflow: hidden; transition: background-color 0.1s;
-        }
+  /* ---------- Header ---------- */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
 
-        /* Headers en el juego */
-        .game-header {
-            position: absolute; top: 25px; width: 100%;
-            display: flex; justify-content: space-between;
-            padding: 0 35px; box-sizing: border-box;
-            color: rgba(255,255,255,0.7); font-weight: 800; z-index: 10;
-        }
-        
-        /* Contador Central */
-        #timer {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 8rem; font-weight: 900; color: #fff;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            font-variant-numeric: tabular-nums; letter-spacing: -4px;
-        }
+  .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-        /* Sliders Personalizados */
-        #sliders-container {
-            position: absolute; left: 20px; top: 50%;
-            transform: translateY(-50%); display: flex; gap: 15px; height: 70%; z-index: 10;
-        }
-        .slider-track {
-            position: relative; width: 28px; height: 100%;
-            border-radius: 14px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
-            touch-action: none; cursor: pointer;
-        }
-        .slider-thumb {
-            position: absolute; width: 20px; height: 20px;
-            background: #fff; border-radius: 50%;
-            left: 4px; top: 50%; transform: translateY(-50%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            pointer-events: none; transition: transform 0.05s;
-        }
+  .brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: conic-gradient(from 180deg, #ff5f5f, #ffd35f, #6fe08d, #5fb8ff, #b06fff, #ff5f5f);
+  }
 
-        /* Botón Confirmar (Bottom Right) */
-        #submit-btn {
-            position: absolute; bottom: 30px; right: 30px;
-            width: 70px; height: 70px; border-radius: 50%;
-            background: rgba(255,255,255,0.9); border: none;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: transform 0.1s; z-index: 10;
-        }
-        #submit-btn:active { transform: scale(0.9); }
-        #submit-btn svg { width: 30px; height: 30px; fill: #000; }
+  .round-track {
+    display: flex;
+    gap: 6px;
+  }
 
-        /* --- PANTALLA FINAL (Clon de la Imagen 2) --- */
-        #result-screen { position: absolute; z-index: 100; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
-        .popup-card {
-            background: var(--popup-bg); color: var(--popup-text);
-            width: 90%; max-width: 420px; border-radius: 24px;
-            padding: 30px; box-sizing: border-box; box-shadow: 0 25px 80px rgba(0,0,0,0.8);
-            position: relative;
-        }
-        .popup-header { display: flex; justify-content: space-between; font-size: 13px; color: #888; font-weight: 600; margin-bottom: 20px; }
-        .close-btn { background: #333; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 12px; }
-        
-        .score-huge { display: flex; align-items: baseline; letter-spacing: -2px; margin-bottom: 5px; }
-        .score-huge .num { font-size: 5rem; font-weight: 900; }
-        .score-huge .total { font-size: 2.5rem; color: #555; font-weight: 800; }
-        .sarcastic-text { color: #888; font-size: 14px; font-weight: 600; margin-bottom: 25px; line-height: 1.4; }
+  .round-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-line);
+    transition: all 0.4s var(--ease-out);
+  }
+  .round-dot.filled { background: var(--text-secondary); }
+  .round-dot.current { background: var(--text-primary); width: 16px; border-radius: 3px; }
 
-        .breakdown-box { border: 1.5px solid #222; border-radius: 16px; padding: 15px; margin-bottom: 20px; }
-        .breakdown-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 15px; }
-        .breakdown-header span:last-child { color: #ccc; }
-        
-        .history-grid { display: flex; gap: 4px; height: 75px; }
-        .history-item { flex: 1; position: relative; overflow: hidden; }
-        .history-item:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        .history-item:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
-        .history-score { position: absolute; top: 6px; left: 6px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); z-index: 2; }
+  /* ---------- Card ---------- */
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
 
-        .popup-actions { display: flex; gap: 10px; }
-        .popup-actions button { flex: 1; padding: 15px; border-radius: 30px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; }
-        .btn-outline { background: transparent; color: #fff; border: 1.5px solid #fff !important; flex: 0.4 !important; }
-        .btn-white { background: #fff; color: #000; }
-    </style>
+  .round-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .instruction {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Target swatch ---------- */
+  .target-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .target-swatch {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  .target-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .target-meta b { color: var(--text-primary); font-weight: 500; }
+
+  /* ---------- Mixing pad ---------- */
+  .mix-area {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .pad-wrap {
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-md);
+    position: relative;
+    cursor: crosshair;
+    touch-action: none;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+  }
+
+  .pad-cursor {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    margin-left: -11px;
+    margin-top: -11px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    transition: transform 0.08s var(--ease-out);
+  }
+  .pad-wrap:active .pad-cursor { transform: scale(1.15); }
+
+  .lightness-rail {
+    width: 40px;
+    border-radius: var(--radius-md);
+    position: relative;
+    cursor: ns-resize;
+    touch-action: none;
+    border: 1px solid var(--panel-border);
+  }
+
+  .rail-cursor {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.5);
+    pointer-events: none;
+    transition: transform 0.08s var(--ease-out);
+  }
+
+  .axis-label {
+    position: absolute;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+
+  /* ---------- Preview & submit ---------- */
+  .preview-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .preview-swatch {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    transition: background-color 0.05s linear;
+  }
+
+  .btn {
+    flex: 1;
+    height: 46px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: transform 0.15s var(--ease-out), background-color 0.15s var(--ease-out), opacity 0.15s var(--ease-out);
+  }
+
+  .btn-primary {
+    background: var(--text-primary);
+    color: #0b0c0e;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0px) scale(0.98); }
+  .btn-primary:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.04); }
+  .btn-ghost:active { transform: scale(0.98); }
+
+  /* ---------- Reveal state ---------- */
+  .reveal-compare {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .compare-block {
+    flex: 1;
+    text-align: center;
+  }
+
+  .compare-swatch {
+    width: 100%;
+    aspect-ratio: 1.4 / 1;
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    margin-bottom: 8px;
+    animation: revealIn 0.5s var(--ease-out) both;
+  }
+  .compare-block:nth-child(2) .compare-swatch { animation-delay: 0.08s; }
+
+  @keyframes revealIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .compare-caption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .score-readout {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid var(--panel-border);
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 20px;
+  }
+
+  .score-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    animation: scoreIn 0.45s var(--ease-out) both;
+    animation-delay: 0.2s;
+  }
+  .score-value span { font-size: 20px; color: var(--text-tertiary); }
+
+  @keyframes scoreIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .score-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* ---------- Final results ---------- */
+  .final-total {
+    text-align: center;
+    padding: 8px 0 24px;
+  }
+
+  .final-total .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .final-total .value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 56px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .final-total .value span { font-size: 24px; color: var(--text-tertiary); }
+
+  .breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--panel-border);
+  }
+
+  .breakdown-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+
+  .breakdown-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .breakdown-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .fade-panel {
+    animation: fadePanel 0.35s var(--ease-out) both;
+  }
+  @keyframes fadePanel {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  @media (max-width: 380px) {
+    .card { padding: 20px; }
+    .instruction { font-size: 18px; }
+    .score-value { font-size: 36px; }
+    .final-total .value { font-size: 44px; }
+  }
+</style>
 </head>
 <body>
 
-    <!-- Inicio -->
-    <div id="start-screen" class="fade-in">
-        <h1>Dialed Color</h1>
-        <button id="start-btn" onclick="initGame()">JUGAR</button>
-    </div>
+<div class="stage">
+  <div class="top-bar">
+    <div class="brand"><span class="brand-dot"></span>Chroma</div>
+    <div class="round-track" id="roundTrack"></div>
+  </div>
 
-    <!-- Juego -->
-    <div id="game-screen" class="hidden">
-        <div id="game-box">
-            <div class="game-header">
-                <div>dialed.gg</div>
-                <div id="round-indicator">1 / 5</div>
-            </div>
-            
-            <div id="timer">500</div>
-            
-            <div id="sliders-container" class="hidden">
-                <div class="slider-track" id="track-h"><div class="slider-thumb"></div></div>
-                <div class="slider-track" id="track-s"><div class="slider-thumb"></div></div>
-                <div class="slider-track" id="track-l"><div class="slider-thumb"></div></div>
-            </div>
-
-            <button id="submit-btn" class="hidden" onclick="submitGuess()">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h-2zm0 6h2v2h-2z" transform="rotate(45, 12, 12)"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Resultados (Copia de la imagen) -->
-    <div id="result-screen" class="hidden">
-        <div class="popup-card fade-in">
-            <div class="popup-header">
-                <div>#7.298.206 / <span style="color: #666">7.411.881</span></div>
-                <div class="close-btn" onclick="location.reload()">X</div>
-            </div>
-            <div class="score-huge">
-                <div class="num" id="final-score">0.00</div>
-                <div class="total">/50</div>
-            </div>
-            <div class="sarcastic-text" id="sarcastic-text">Mediocre. The off-white of achievement. The eggshell of ambition.</div>
-            
-            <div class="breakdown-box">
-                <div class="breakdown-header">
-                    <span>ELA</span>
-                    <span id="final-score-small">0.00/50</span>
-                </div>
-                <div class="history-grid" id="history-grid">
-                    <!-- Se llena con JS -->
-                </div>
-            </div>
-
-            <div class="popup-actions">
-                <button class="btn-outline" onclick="location.reload()">ELA</button>
-                <button class="btn-white" onclick="initGame()">Play Again</button>
-            </div>
-        </div>
-    </div>
+  <div class="card" id="card"></div>
+</div>
 
 <script>
-    // --- Audio Engine (Web Audio API) ---
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let actx;
+(function(){
+  const TOTAL_ROUNDS = 5;
+  let round = 0;
+  let scores = [];
+  let targets = [];
+  let current = { h: 200, s: 60, l: 50 };
+  let targetColor = null;
+  let dragging = null;
 
-    function initAudio() { if (!actx) actx = new AudioContext(); }
-    
-    function playTone(freq, type, duration, vol) {
-        if (!actx) return;
-        const osc = actx.createOscillator();
-        const gain = actx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freq, actx.currentTime);
-        gain.gain.setValueAtTime(vol, actx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, actx.Normally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
+  const card = document.getElementById('card');
+  const roundTrack = document.getElementById('roundTrack');
+
+  function hsl(h, s, l){ return `hsl(${h.toFixed(1)}, ${s.toFixed(1)}%, ${l.toFixed(1)}%)`; }
+
+  function randomTarget(){
+    const h = Math.random() * 360;
+    const s = 35 + Math.random() * 55;
+    const l = 30 + Math.random() * 40;
+    return { h, s, l };
+  }
+
+  function hslToRgb(h, s, l){
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [255 * f(0), 255 * f(8), 255 * f(4)];
+  }
+
+  function rgbToLab(r, g, b){
+    let [x, y, z] = (function(){
+      let rr = r / 255, gg = g / 255, bb = b / 255;
+      rr = rr > 0.04045 ? Math.pow((rr + 0.055) / 1.055, 2.4) : rr / 12.92;
+      gg = gg > 0.04045 ? Math.pow((gg + 0.055) / 1.055, 2.4) : gg / 12.92;
+      bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
+      rr *= 100; gg *= 100; bb *= 100;
+      const x = rr * 0.4124 + gg * 0.3576 + bb * 0.1805;
+      const y = rr * 0.2126 + gg * 0.7152 + bb * 0.0722;
+      const z = rr * 0.0193 + gg * 0.1192 + bb * 0.9505;
+      return [x, y, z];
+    })();
+    x /= 95.047; y /= 100; z /= 108.883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787 * t + 16/116);
+    const fx = f(x), fy = f(y), fz = f(z);
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+  }
+
+  function deltaE(c1, c2){
+    const [r1,g1,b1] = hslToRgb(c1.h, c1.s, c1.l);
+    const [r2,g2,b2] = hslToRgb(c2.h, c2.s, c2.l);
+    const [L1,A1,B1] = rgbToLab(r1,g1,b1);
+    const [L2,A2,B2] = rgbToLab(r2,g2,b2);
+    return Math.sqrt((L1-L2)**2 + (A1-A2)**2 + (B1-B2)**2);
+  }
+
+  function scoreFromDelta(d){
+    const s = 10 * (1 - Math.min(d, 110) / 110);
+    return Math.max(0, Math.round(s * 100) / 100);
+  }
+
+  function renderRoundTrack(){
+    roundTrack.innerHTML = '';
+    for(let i = 0; i < TOTAL_ROUNDS; i++){
+      const dot = document.createElement('div');
+      dot.className = 'round-dot';
+      if(i < round) dot.classList.add('filled');
+      if(i === round) dot.classList.add('current');
+      roundTrack.appendChild(dot);
+    }
+  }
+
+  function startRound(){
+    targetColor = randomTarget();
+    targets.push(targetColor);
+    current = { h: (targetColor.h + 150) % 360, s: 55, l: 50 };
+    renderRoundTrack();
+    renderPlayState();
+  }
+
+  function renderPlayState(){
+    card.innerHTML = `
+      <div class="round-label">Ronda ${round + 1} de ${TOTAL_ROUNDS}</div>
+      <div class="instruction">Iguala este color</div>
+
+      <div class="target-row">
+        <div class="target-swatch" style="background:${hsl(targetColor.h, targetColor.s, targetColor.l)}"></div>
+        <div class="target-meta">Ajusta tono y saturación en el panel.<br>Usa el riel para la luminosidad.</div>
+      </div>
+
+      <div class="mix-area">
+        <div class="pad-wrap" id="pad">
+          <span class="axis-label" style="top:8px; left:10px;">S ↑</span>
+          <span class="axis-label" style="bottom:8px; right:10px;">H →</span>
+          <div class="pad-cursor" id="padCursor"></div>
+        </div>
+        <div class="lightness-rail" id="rail">
+          <div class="rail-cursor" id="railCursor"></div>
+        </div>
+      </div>
+
+      <div class="preview-row" style="margin-bottom:18px;">
+        <div class="preview-swatch" id="previewSwatch"></div>
+        <button class="btn btn-primary" id="confirmBtn">Confirmar color</button>
+      </div>
+    `;
+
+    const pad = document.getElementById('pad');
+    const rail = document.getElementById('rail');
+    updatePadBackground(pad);
+    updateRailBackground(rail);
+    updateVisuals();
+
+    pad.addEventListener('pointerdown', e => { dragging = 'pad'; pad.setPointerCapture(e.pointerId); movePad(e); });
+    pad.addEventListener('pointermove', e => { if(dragging === 'pad') movePad(e); });
+    pad.addEventListener('pointerup', () => dragging = null);
+
+    rail.addEventListener('pointerdown', e => { dragging = 'rail'; rail.setPointerCapture(e.pointerId); moveRail(e); });
+    rail.addEventListener('pointermove', e => { if(dragging === 'rail') moveRail(e); });
+    rail.addEventListener('pointerup', () => dragging = null);
+
+    document.getElementById('confirmBtn').addEventListener('click', confirmRound);
+  }
+
+  function updatePadBackground(pad){
+    pad.style.background = `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${current.h},100%,50%))`;
+  }
+  function updateRailBackground(rail){
+    rail.style.background = `linear-gradient(to bottom, #fff, hsl(${current.h}, ${current.s}%, 50%), #000)`;
+  }
+
+  function movePad(e){
+    const pad = document.getElementById('pad');
+    const rect = pad.getBoundingClientRect();
+    let x = (e.clientX - rect.left) / rect.width;
+    let y = (e.clientY - rect.top) / rect.height;
+    x = Math.max(0, Math.min(1, x));
+    y = Math.max(0, Math.min(1, y));
+    current.h = x * 360;
+    current.s = (1 - y) * 100;
+    updatePadBackground(pad);
+    updateRailBackground(document.getElementById('rail'));
+    updateVisuals();
+  }
+
+  function moveRail(e){
+    const rail = document.getElementById('rail');
+    const rect = rail.getBoundingClientRect();
+    let y = (e.clientY - rect.top) / rect.height;
+    y = Math.max(0, Math.min(1, y));
+    current.l = (1 - y) * 100;
+    updateRailBackground(rail);
+    updateVisuals();
+  }
+
+  function updateVisuals(){
+    const padCursor = document.getElementById('padCursor');
+    const railCursor = document.getElementById('railCursor');
+    const preview = document.getElementById('previewSwatch');
+    if(padCursor){
+      padCursor.style.left = (current.h / 360 * 100) + '%';
+      padCursor.style.top = ((1 - current.s / 100) * 100) + '%';
+    }
+    if(railCursor){
+      railCursor.style.top = ((1 - current.l / 100) * 100) + '%';
+    }
+    if(preview){
+      preview.style.background = hsl(current.h, current.s, current.l);
+    }
+  }
+
+  function confirmRound(){
+    const d = deltaE(current, targetColor);
+    const score = scoreFromDelta(d);
+    scores.push(score);
+    renderRevealState(score, d);
+  }
+
+  function renderRevealState(score, d){
+    const tag = score >= 9 ? 'Casi perfecto' : score >= 7 ? 'Muy cerca' : score >= 4.5 ? 'Aceptable' : score >= 2 ? 'Lejos' : 'Muy lejos';
+    card.innerHTML = `
+      <div class="round-label">Ronda ${round + 1} de ${TOTAL_ROUNDS}</div>
+      <div class="instruction">Resultado</div>
+
+      <div class="reveal-compare fade-panel">
+        <div class="compare-block">
+          <div class="compare-swatch" style="background:${hsl(targetColor.h, targetColor.s, targetColor.l)}"></div>
+          <div class="compare-caption">Objetivo</div>
+        </div>
+        <div class="compare-block">
+          <div class="compare-swatch" style="background:${hsl(current.h, current.s, current.l)}"></div>
+          <div class="compare-caption">Tu color</div>
+        </div>
+      </div>
+
+      <div class="score-readout">
+        <div class="score-value">${score.toFixed(2)}<span>/10.00</span></div>
+        <div class="score-tag">${tag}</div>
+      </div>
+
+      <button class="btn btn-primary" id="nextBtn" style="width:100%;">${round + 1 < TOTAL_ROUNDS ? 'Siguiente ronda' : 'Ver resultado final'}</button>
+    `;
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      round++;
+      if(round < TOTAL_ROUNDS){
+        startRound();
+      } else {
+        renderFinalState();
+      }
+    });
+  }
+
+  function renderFinalState(){
+    const total = Math.round(scores.reduce((a,b) => a+b, 0) * 100) / 100;
+    let rowsHtml = '';
+    for(let i = 0; i < TOTAL_ROUNDS; i++){
+      const t = targets[i];
+      rowsHtml += `
+        <div class="breakdown-row">
+          <div class="breakdown-swatch" style="background:${hsl(t.h, t.s, t.l)}"></div>
+          <div class="breakdown-label">Ronda ${i + 1}</div>
+          <div class="breakdown-score">${scores[i].toFixed(2)} / 10.00</div>
+        </div>
+      `;
+    }
+    card.innerHTML = `
+      <div class="round-label">Partida completa</div>
+      <div class="instruction">Resultado final</div>
+
+      <div class="final-total fade-panel">
+        <div class="label">Puntuación total</div>
+        <div class="value">${total.toFixed(2)}<span>/50.00</span></div>
+      </div>
+
+      <div class="breakdown">${rowsHtml}</div>
+
+      <button class="btn btn-ghost" id="restartBtn" style="width:100%;">Jugar de nuevo</button>
+    `;
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      round = 0; scores = []; targets = [];
+      startRound();
+    });
+  }
+
+  startRound();
+})();
+</script>
+
+</body>
+</html>
